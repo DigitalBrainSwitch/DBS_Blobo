@@ -59,8 +59,8 @@ public class MainActivity extends Activity {
 
     //latest blobo value
     public static float pressure = 0;
-    public static double maxPressure = 30000;
-    public static double minPressure = 15000;
+    public static double maxPressure = 23500;
+    public static double minPressure = 20000;
 
     // Name of the connected device
     private String mConnectedDeviceName = null;
@@ -367,7 +367,7 @@ public class MainActivity extends Activity {
 
                         //setStatus(String.valueOf(numA));
                         pressure = numA;
-                        prevPressure = pressure = LowPassFilter.filter(prevPressure, pressure, 0.4f);
+                        prevPressure = pressure = LowPassFilter.filter(prevPressure, pressure, 0.5f);
                         DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
                         Calendar calendar = Calendar.getInstance();
                         calendar.setTimeInMillis(System.currentTimeMillis());

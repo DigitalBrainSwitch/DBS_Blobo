@@ -6,6 +6,7 @@ import android.graphics.Paint;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
+import uk.co.digitalbrainswitch.dbsblobodiary.MainActivity;
 import uk.co.digitalbrainswitch.dbsblobodiary.R;
 
 /**
@@ -33,7 +34,8 @@ public class Circle extends SurfaceView implements SurfaceHolder.Callback {
 
     public void colorize(Canvas canvas){
 
-//        if (MainActivity.pressure == 0) paint.setColor(getResources().getColor(R.color.gray));
+        if (MainActivity.pressure == 0 || MainActivity.pressure < 22000) paint.setColor(getResources().getColor(R.color.gray));
+        else if (MainActivity.pressure >= 22000) paint.setColor(getResources().getColor(R.color.green_1));
 //        else if (MainActivity.pressure > 10000 && MainActivity.pressure <= 16600) paint.setColor(getResources().getColor(R.color.green_1));
 //        else if(MainActivity.pressure > 16600 && MainActivity.pressure <= 16700) paint.setColor(getResources().getColor(R.color.green_2));
 //        else if(MainActivity.pressure > 16700 && MainActivity.pressure <= 16800) paint.setColor(getResources().getColor(R.color.green_3));
