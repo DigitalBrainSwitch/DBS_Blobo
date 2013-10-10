@@ -4,4 +4,8 @@
     <dimen name="activity_vertical_margin">16dp</dimen>
 
     <dimen name="textview_font_size">22sp</dimen>
+
+    <integer name="pressure_max_default_value">24000</integer>
+    <integer name="pressure_min_default_value">15000</integer>
+    <integer name="pressure_threshold_default_value">22000</integer>
 </resources>

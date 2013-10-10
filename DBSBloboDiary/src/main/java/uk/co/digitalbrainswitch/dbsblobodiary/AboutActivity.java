@@ -5,7 +5,6 @@ import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Activity;
-import android.view.Menu;
 import android.view.View;
 import android.widget.TextView;
 
@@ -17,7 +16,7 @@ public class AboutActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.about);
-        font = Typeface.createFromAsset(getAssets(), "abel.ttf");
+        font = ((MyApplication) getApplication()).getCustomTypeface();
         this.initialise();
 
         findViewById(R.id.ivAboutDBSLogo).setOnClickListener(new View.OnClickListener() {

@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
@@ -35,9 +36,12 @@ import uk.co.digitalbrainswitch.dbsblobodiary.bluetooth.DeviceListActivity;
 import uk.co.digitalbrainswitch.dbsblobodiary.util.LowPassFilter;
 import uk.co.digitalbrainswitch.dbsblobodiary.visual.Circle;
 
+import static android.preference.PreferenceManager.getDefaultSharedPreferences;
+
 public class MainActivity extends Activity {
 
     Typeface font;
+
     private String TAG = "DBS BLOBO DIARY";
     private static final boolean D = true;
 
@@ -60,7 +64,8 @@ public class MainActivity extends Activity {
     //latest blobo value
     public static float pressure = 0;
     public static double maxPressure = 23500;
-    public static double minPressure = 20000;
+    public static double minPressure = 10000;
+    public static double thresholdPressure = 22000;
 
     // Name of the connected device
     private String mConnectedDeviceName = null;
@@ -91,7 +96,8 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        font = Typeface.createFromAsset(getAssets(), "abel.ttf");
+
+        font = ((MyApplication) getApplication()).getCustomTypeface();
         this.initialise();
 
         //Add a circle to layout
@@ -139,6 +145,15 @@ public class MainActivity extends Activity {
                 mChatService.start();
             }
         }
+
+        //Update threshold values from shared preferences
+        SharedPreferences sharedPref = getDefaultSharedPreferences(getApplicationContext());
+        minPressure = (double) sharedPref.getInt(getString(R.string.pressure_min),
+                getResources().getInteger(R.integer.pressure_min_default_value));
+        maxPressure = (double) sharedPref.getInt(getString(R.string.pressure_max),
+                getResources().getInteger(R.integer.pressure_max_default_value));
+        thresholdPressure = (double) sharedPref.getInt(getString(R.string.pressure_threshold),
+                getResources().getInteger(R.integer.pressure_threshold_default_value));
     }
 
     @Override
@@ -195,6 +210,7 @@ public class MainActivity extends Activity {
                 break;
 
             case (R.id.menu_settings):
+                showSettings();
                 break;
 
             case (R.id.menu_about):
@@ -205,6 +221,16 @@ public class MainActivity extends Activity {
                 return false;
         }
         return true;
+    }
+
+    private void showAbout(){
+        Intent intent = new Intent(this, AboutActivity.class);
+        startActivity(intent);
+    }
+
+    private void showSettings() {
+        Intent intent = new Intent(this, SettingsActivity.class);
+        startActivity(intent);
     }
 
 
@@ -248,11 +274,6 @@ public class MainActivity extends Activity {
         tvDisplay.setText("");
         Intent serverIntent = new Intent(getApplicationContext(), DeviceListActivity.class);
         startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE_INSECURE);
-    }
-
-    private void showAbout(){
-        Intent intent = new Intent(this, AboutActivity.class);
-        startActivity(intent);
     }
 
     private void setupChat() {
