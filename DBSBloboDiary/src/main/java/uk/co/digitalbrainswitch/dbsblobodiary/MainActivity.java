@@ -66,6 +66,7 @@ public class MainActivity extends Activity {
     public static double maxPressure = 23500;
     public static double minPressure = 10000;
     public static double thresholdPressure = 22000;
+    public static int longSqueezeDuration = 3; //3 seconds
 
     // Name of the connected device
     private String mConnectedDeviceName = null;
@@ -83,7 +84,7 @@ public class MainActivity extends Activity {
     long timeInMillies = 0L;
     long timeSwap = 0L;
     long finalTime = 0L;
-    //private Handler timerHandler = new Handler();
+    private Handler timerHandler = new Handler();
 
 
     private float prevPressure = 0f;
@@ -154,6 +155,8 @@ public class MainActivity extends Activity {
                 getResources().getInteger(R.integer.pressure_max_default_value));
         thresholdPressure = (double) sharedPref.getInt(getString(R.string.pressure_threshold),
                 getResources().getInteger(R.integer.pressure_threshold_default_value));
+        longSqueezeDuration = sharedPref.getInt(getString(R.string.long_squeeze_duration),
+                getResources().getInteger(R.integer.long_squeeze_duration_default_value));
     }
 
     @Override
@@ -201,12 +204,15 @@ public class MainActivity extends Activity {
                 break;
 
             case (R.id.menu_show_time_data):
+                showTimeData();
                 break;
 
             case (R.id.menu_show_map):
+                showMap();
                 break;
 
             case (R.id.menu_reflection):
+                showReflection();
                 break;
 
             case (R.id.menu_settings):
@@ -221,6 +227,20 @@ public class MainActivity extends Activity {
                 return false;
         }
         return true;
+    }
+
+    private void showTimeData(){
+        Intent intent = new Intent(this, ShowTimeDataActivity.class);
+        startActivity(intent);
+    }
+
+    private void showMap(){
+        Intent intent = new Intent(this, MapActivity.class);
+        startActivity(intent);
+    }
+
+    private void showReflection(){
+
     }
 
     private void showAbout(){
@@ -429,7 +449,7 @@ public class MainActivity extends Activity {
 
                     //update the current start time
                     startTime = SystemClock.uptimeMillis();
-                    //timerHandler.postDelayed(optionTimer, 1000);
+                    timerHandler.postDelayed(optionTimer, 1000);
 
                     break;
                 case MESSAGE_TOAST:
@@ -438,4 +458,50 @@ public class MainActivity extends Activity {
             }
         }
     };
+
+
+    private int minutes, seconds;
+//    private int currentSecond = 0;
+//    private int lastSecond = 0;
+    public static int longSqueezeCounter = 0;
+//    public static int hardSqueezeCounter = 0;
+//    private int vibrationTime = 150;
+    private double lastPressureValue = 0;
+
+    final Runnable optionTimer = new Runnable() {
+        @Override
+        public void run() {
+            //calculate the difference between times
+            timeInMillies = SystemClock.uptimeMillis() - startTime;
+
+            //update the minutes and seconds of using the blobo
+            seconds = (int) (timeInMillies / 1000);
+            minutes = seconds / 60;
+            seconds = seconds % 60;
+//            currentSecond++;
+
+            //prolonged squeeze of at least <longSqueezeDuration> seconds application logic
+            if(pressure > thresholdPressure){
+                longSqueezeCounter++;
+
+                if(longSqueezeCounter == longSqueezeDuration){
+                    performAction();
+                    Toast.makeText(getApplicationContext(), getString(R.string.long_squeeze) + " triggered!", Toast.LENGTH_SHORT).show();
+                    longSqueezeCounter = 0;
+                    long pattern[] = {0, 300, 200, 300, 200, 300, 0};
+                    vibrate(pattern);
+                }
+            }
+            else{
+                longSqueezeCounter = 0;
+            }
+
+            //start the timer
+            timerHandler.postDelayed(this, 1000);
+        }
+    };
+
+    private void performAction(){
+
+    }
 }

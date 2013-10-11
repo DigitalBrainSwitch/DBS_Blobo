@@ -18,7 +18,7 @@ import static android.preference.PreferenceManager.getDefaultSharedPreferences;
 
 public class SettingsActivity extends Activity implements View.OnClickListener {
 
-    EditText etSettingsMinimum, etSettingsMaximum, etSettingsThreshold;
+    EditText etSettingsMinimum, etSettingsMaximum, etSettingsThreshold, etSettingsLongSqueezeDuration;
     Button bSettingsSave;
     SharedPreferences sharedPref;
 
@@ -38,6 +38,8 @@ public class SettingsActivity extends Activity implements View.OnClickListener {
         textView.setTypeface(font);
         textView = (TextView) findViewById(R.id.tvSettingsThreshold);
         textView.setTypeface(font);
+        textView = (TextView) findViewById(R.id.tvSettingsLongSqueezeDuration);
+        textView.setTypeface(font);
 
         //Retrieve stored preferences' values
         sharedPref = getDefaultSharedPreferences(getApplicationContext());
@@ -47,6 +49,8 @@ public class SettingsActivity extends Activity implements View.OnClickListener {
                 getResources().getInteger(R.integer.pressure_max_default_value));
         int pressureThreshold = sharedPref.getInt(getString(R.string.pressure_threshold),
                 getResources().getInteger(R.integer.pressure_threshold_default_value));
+        int longSqueezeDuration = sharedPref.getInt(getString(R.string.long_squeeze_duration),
+                getResources().getInteger(R.integer.long_squeeze_duration_default_value));
 
         //Set font and set text from preferences
         etSettingsMinimum = (EditText) findViewById(R.id.etSettingsMinimum);
@@ -58,6 +62,9 @@ public class SettingsActivity extends Activity implements View.OnClickListener {
         etSettingsThreshold = (EditText) findViewById(R.id.etSettingsThreshold);
         etSettingsThreshold.setText(Integer.toString(pressureThreshold));
         etSettingsThreshold.setTypeface(font);
+        etSettingsLongSqueezeDuration = (EditText) findViewById(R.id.etSettingsLongSqueezeDuration);
+        etSettingsLongSqueezeDuration.setText(Integer.toString(longSqueezeDuration));
+        etSettingsLongSqueezeDuration.setTypeface(font);
 
         bSettingsSave = (Button) findViewById(R.id.bSettingsSave);
         bSettingsSave.setTypeface(font);
@@ -70,7 +77,7 @@ public class SettingsActivity extends Activity implements View.OnClickListener {
             case R.id.bSettingsSave:
                 //Set to shared preferences
                 SharedPreferences.Editor editor = sharedPref.edit();
-                int pressure_min_value, pressure_max_value, pressure_threshold_value;
+                int pressure_min_value, pressure_max_value, pressure_threshold_value, long_squeeze_duration_value;
 
                 //Check if value is integer. If not, display an alert dialog
                 try {
@@ -94,10 +101,22 @@ public class SettingsActivity extends Activity implements View.OnClickListener {
                     return;
                 }
 
+                try {
+                    long_squeeze_duration_value = Integer.parseInt(etSettingsLongSqueezeDuration.getText().toString());
+                    if(long_squeeze_duration_value < 2){
+                        showAlertMessage("Error", "Long Squeeze Duration value must be larger than 1");
+                        return;
+                    }
+                } catch (NumberFormatException e) {
+                    showAlertMessage("Error", "Please enter an integer number for Long Squeeze Duration");
+                    return;
+                }
+
                 //Write to preferences storage
                 editor.putInt(getString(R.string.pressure_min), pressure_min_value);
                 editor.putInt(getString(R.string.pressure_max), pressure_max_value);
                 editor.putInt(getString(R.string.pressure_threshold), pressure_threshold_value);
+                editor.putInt(getString(R.string.long_squeeze_duration), long_squeeze_duration_value);
                 editor.commit();
 
                 finish();

@@ -20,14 +20,12 @@
 
     <!-- Titles -->
     <string name="title_activity_show_time_data">Show Time Data</string>
-    <string name="title_activity_about">About DBS Blobo Diary</string>
+    <string name="title_activity_about">About DBS</string>
     <string name="title_device_list">Select a Device to Connect</string>
 
     <!-- Text -->
-    <string name="text_about">
-        Digital Brain Switch (DBS) is a project funded by the Engineering and Physical Sciences Research Council (EPSRC), which brings together computer science and social science. It is a collaboration between Lancaster University; The Open University; Royal Holloway, University of London; and University of Kent. The project is led by Prof. Jon Whittle from the School of Computing &amp; Communications at Lancaster University.
-        \n\nEmail: DBS-Project@open.ac.uk
-    </string>
+    <string name="text_about">        Digital Brain Switch (DBS) is a project funded by the Engineering and Physical Sciences Research Council (EPSRC), which brings together computer science and social science. It is a collaboration between Lancaster University; The Open University; Royal Holloway, University of London; and University of Kent. The project is led by Prof. Jon Whittle from the School of Computing &amp; Communications at Lancaster University.
+        \n\nEmail: DBS-Project@open.ac.uk</string>
     <string name="text_version">0.1</string>
     <string name="action_settings">Settings</string>
 
@@ -55,6 +53,13 @@
     <string name="pressure_max">SHARE_PREFERENCES_PRESSURE_MAX</string>
     <string name="pressure_min">SHARE_PREFERENCES_PRESSURE_MIN</string>
     <string name="pressure_threshold">SHARE_PREFERENCES_PRESSURE_THRESHOLD</string>
+    <string name="long_squeeze_duration">SHARE_PREFERENCES_LONG_SQUEEZE_DURATION</string>
     <string name="hello_world">Hello world!</string>
+    <string name="long_squeeze">Long Squeeze</string>
+    <string name="title_activity_map">MapActivity</string>
+
+    <!-- ShowTimeDataActivity intent extra-->
+    <string name="showtimedata_point_location_long">SHOWTIMEDATA_POINT_LOCATION_LONG</string>
+    <string name="showtimedata_point_location_lat">SHOWTIMEDATA_POINT_LOCATION_LAT</string>
 
 </resources>

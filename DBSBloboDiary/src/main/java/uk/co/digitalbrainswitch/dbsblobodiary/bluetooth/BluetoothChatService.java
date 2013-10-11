@@ -448,6 +448,7 @@ public class BluetoothChatService {
                     write(send);
                     */
 
+                    //Send a byte every 500 packets received to keep the connection alive
                     if(COUNT > 500){
                         byte[] send = {13};
                         write(send);
