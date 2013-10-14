@@ -112,6 +112,21 @@ public class SettingsActivity extends Activity implements View.OnClickListener {
                     return;
                 }
 
+                if(pressure_min_value > pressure_max_value){
+                    showAlertMessage("Error", "Minimum must be smaller than Maximum");
+                    return;
+                }
+
+                if(pressure_min_value > pressure_threshold_value){
+                    showAlertMessage("Error", "Threshold must be bigger than Minimum");
+                    return;
+                }
+
+                if(pressure_threshold_value > pressure_max_value){
+                    showAlertMessage("Error", "Threshold must be smaller than Maximum");
+                    return;
+                }
+
                 //Write to preferences storage
                 editor.putInt(getString(R.string.pressure_min), pressure_min_value);
                 editor.putInt(getString(R.string.pressure_max), pressure_max_value);

@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 
 import uk.co.digitalbrainswitch.dbsblobodiary.bluetooth.BluetoothChatService;
 import uk.co.digitalbrainswitch.dbsblobodiary.bluetooth.DeviceListActivity;
@@ -116,7 +117,7 @@ public class MainActivity extends Activity {
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     }
 
-    private void initialise(){
+    private void initialise() {
         tvDisplay = (TextView) findViewById(R.id.tvMainDisplay);
         tvDisplay.setTypeface(font);
         tvConnectionStatus = (TextView) findViewById(R.id.tvMainConnectionStatus);
@@ -157,6 +158,8 @@ public class MainActivity extends Activity {
                 getResources().getInteger(R.integer.pressure_threshold_default_value));
         longSqueezeDuration = sharedPref.getInt(getString(R.string.long_squeeze_duration),
                 getResources().getInteger(R.integer.long_squeeze_duration_default_value));
+
+        performAction();
     }
 
     @Override
@@ -176,7 +179,7 @@ public class MainActivity extends Activity {
         super.onDestroy();
         // Stop the Bluetooth chat services
         if (mChatService != null) mChatService.stop();
-        if(D) Log.e(TAG, "--- ON DESTROY ---");
+        if (D) Log.e(TAG, "--- ON DESTROY ---");
     }
 
     @Override
@@ -198,7 +201,7 @@ public class MainActivity extends Activity {
     public boolean onOptionsItemSelected(MenuItem item) {
         super.onOptionsItemSelected(item);
 
-        switch(item.getItemId()){
+        switch (item.getItemId()) {
             case (R.id.menu_connect):
                 connectBluetoothBlobo();
                 break;
@@ -229,21 +232,21 @@ public class MainActivity extends Activity {
         return true;
     }
 
-    private void showTimeData(){
+    private void showTimeData() {
         Intent intent = new Intent(this, ShowTimeDataActivity.class);
         startActivity(intent);
     }
 
-    private void showMap(){
+    private void showMap() {
         Intent intent = new Intent(this, MapActivity.class);
         startActivity(intent);
     }
 
-    private void showReflection(){
+    private void showReflection() {
 
     }
 
-    private void showAbout(){
+    private void showAbout() {
         Intent intent = new Intent(this, AboutActivity.class);
         startActivity(intent);
     }
@@ -288,7 +291,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void connectBluetoothBlobo(){
+    private void connectBluetoothBlobo() {
         //connect blobo via bluetooth
         //Connect to bluetooth and display read data on tvDisplay
         tvDisplay.setText("");
@@ -325,52 +328,6 @@ public class MainActivity extends Activity {
         // Attempt to connect to the device
         mChatService.connect(device, secure);
     }
-
-    private void vibrate(long time) {
-        Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-        v.vibrate(time);
-    }
-
-    private void vibrate(long pattern[]) {
-        Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-        v.vibrate(pattern, -1); //-1 to disable repeat
-    }
-
-    private void saveDataToFile(String data) {
-
-        File root = Environment.getExternalStorageDirectory();
-        File file = new File(root, "Download/data.txt");
-
-        try {
-            if (root.canWrite()) {
-                FileWriter filewriter = new FileWriter(file, true);
-                BufferedWriter out = new BufferedWriter(filewriter);
-                out.write(data + "\n");
-                out.close();
-            }
-        } catch (IOException e) {
-            Log.e("TAG", "Could not write file " + e.getMessage());
-        }
-    }
-
-    private void saveValueToFile(String data) {
-
-        File root = Environment.getExternalStorageDirectory();
-        File file = new File(root, "Download/values.txt");
-
-        try {
-            if (root.canWrite()) {
-                FileWriter filewriter = new FileWriter(file, true);
-                BufferedWriter out = new BufferedWriter(filewriter);
-                out.write(data + "\n");
-                out.close();
-            }
-        } catch (IOException e) {
-            Log.e("TAG", "Could not write file " + e.getMessage());
-        }
-    }
-
-
 
     // The Handler that gets information back from the BluetoothChatService
     private final Handler mHandler = new Handler() {
@@ -461,10 +418,10 @@ public class MainActivity extends Activity {
 
 
     private int minutes, seconds;
-//    private int currentSecond = 0;
+    //    private int currentSecond = 0;
 //    private int lastSecond = 0;
     public static int longSqueezeCounter = 0;
-//    public static int hardSqueezeCounter = 0;
+    //    public static int hardSqueezeCounter = 0;
 //    private int vibrationTime = 150;
     private double lastPressureValue = 0;
 
@@ -481,18 +438,14 @@ public class MainActivity extends Activity {
 //            currentSecond++;
 
             //prolonged squeeze of at least <longSqueezeDuration> seconds application logic
-            if(pressure > thresholdPressure){
+            if (pressure > thresholdPressure) {
                 longSqueezeCounter++;
 
-                if(longSqueezeCounter == longSqueezeDuration){
-                    performAction();
-                    Toast.makeText(getApplicationContext(), getString(R.string.long_squeeze) + " triggered!", Toast.LENGTH_SHORT).show();
+                if (longSqueezeCounter == longSqueezeDuration) {
                     longSqueezeCounter = 0;
-                    long pattern[] = {0, 300, 200, 300, 200, 300, 0};
-                    vibrate(pattern);
+                    performAction();
                 }
-            }
-            else{
+            } else {
                 longSqueezeCounter = 0;
             }
 
@@ -501,7 +454,88 @@ public class MainActivity extends Activity {
         }
     };
 
-    private void performAction(){
+    private void vibrate(long time) {
+        Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        v.vibrate(time);
+    }
 
+    private void vibrate(long pattern[]) {
+        Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        v.vibrate(pattern, -1); //-1 to disable repeat
+    }
+
+
+    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_EEEE");
+
+    private void saveDataToFile(long timeInMillies, String data) {
+
+        String todayDateString = sdf.format(new Date());
+
+        File root = Environment.getExternalStorageDirectory();
+        System.out.println("################################################");
+        //create directory if it does not exist
+        File folder = new File(root + "/Download/data/");
+        if (!folder.exists()) {
+            boolean success = folder.mkdirs();
+            if (success) {
+                System.out.println("SUCCESS");
+            } else {
+                System.out.println("FAILED");
+            }
+        }
+
+        //create file if it does not exist
+        File file = new File(folder, todayDateString + ".txt");
+        boolean success = true;
+
+        try {
+            if (!file.exists()) {
+                success = file.createNewFile();
+                if (success) {
+                    System.out.println("SUCCESS");
+                } else {
+                    System.out.println("FAILED");
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println("################################################");
+
+        try {
+            if (root.canWrite()) {
+                FileWriter filewriter = new FileWriter(file, true);
+                BufferedWriter out = new BufferedWriter(filewriter);
+                out.write(data + "\n");
+                out.close();
+            }
+        } catch (IOException e) {
+            Log.e("TAG", "Could not write file " + e.getMessage());
+        }
+    }
+
+    private void saveValueToFile(String data) {
+
+
+//        File root = Environment.getExternalStorageDirectory();
+//        File file = new File(root, "Download/values.txt");
+//
+//        try {
+//            if (root.canWrite()) {
+//                FileWriter filewriter = new FileWriter(file, true);
+//                BufferedWriter out = new BufferedWriter(filewriter);
+//                out.write(data + "\n");
+//                out.close();
+//            }
+//        } catch (IOException e) {
+//            Log.e("TAG", "Could not write file " + e.getMessage());
+//        }
+    }
+
+    private void performAction() {
+        Toast.makeText(getApplicationContext(), getString(R.string.long_squeeze) + " triggered!", Toast.LENGTH_SHORT).show();
+        long pattern[] = {0, 300, 200, 300, 200, 300, 0};
+        vibrate(pattern);
+        saveDataToFile(System.currentTimeMillis(), "EVENT");
     }
 }
