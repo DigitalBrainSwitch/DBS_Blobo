@@ -124,18 +124,10 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
         if (seriesSelection != null) {
             //When user touched a point on the graph
             Intent intent = new Intent(this, MapActivity.class);
-            long key = (long) xy[0];
+            long key = (long) seriesSelection.getXValue();
             TimeLocation selectedTimeLocation = data.get(key);
-
-
-            //Need to find a way to send object to another activity
-            /*
-            ArrayList<TimeLocation> timeLocationArrayList = new ArrayList<TimeLocation>();
-            timeLocationArrayList.add(selectedTimeLocation);
-            intent.putExtra(getString(R.string.intent_extra_time_location), timeLocationArrayList);
+            intent.putExtra(getString(R.string.intent_extra_time_location), selectedTimeLocation);
             startActivity(intent);
-            */
-
             Toast.makeText(
                     ShowTimeDataActivity.this, "Clicked point value X=" + getDate((long) xy[0], "yyyy-MM-dd HH:mm:ss.SSS"), Toast.LENGTH_SHORT).show();
         }
