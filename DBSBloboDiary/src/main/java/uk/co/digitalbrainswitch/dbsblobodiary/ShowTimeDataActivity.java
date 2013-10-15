@@ -30,17 +30,25 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.TreeMap;
+
+import uk.co.digitalbrainswitch.dbsblobodiary.location.TimeLocation;
 
 public class ShowTimeDataActivity extends Activity implements View.OnClickListener {
 
     Typeface font;
-
+    String selectedFileName = "NULL";
     // chart container
     private LinearLayout layout;
     private GraphicalView mChartView;
+
+    TreeMap<Long, TimeLocation> data;
 
 
     @Override
@@ -53,12 +61,60 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
     }
 
     private void initialise() {
+        //get selected file name from intent extra bundle
+        Bundle extra = getIntent().getExtras();
+        selectedFileName = extra.getString(getString(R.string.intent_extra_selected_file_name));
+
+        data = new TreeMap<Long, TimeLocation>();
+        readDataFromFile(selectedFileName);
+
+        //set up UI
         TextView txt = (TextView) findViewById(R.id.tvShowTimeDate);
         txt.setTypeface(font);
         layout = (LinearLayout) findViewById(R.id.layoutShowTimeChart);
         mChartView = ChartFactory.getTimeChartView(this, getDateDataset(), getRenderer(), null);
         mChartView.setOnClickListener(this);
         layout.addView(mChartView);
+
+        txt.append(selectedFileName);
+    }
+
+    private void readDataFromFile(String fileName) {
+        File root = Environment.getExternalStorageDirectory();
+        File storedDirectory = new File(root, getString(R.string.stored_data_directory));
+        File file = new File(storedDirectory, fileName + ".txt");
+        try {
+            FileInputStream inputStream = new FileInputStream(file);
+
+            if (inputStream != null) {
+                InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+                BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+
+                String receiveString;
+
+                //Read every line from file. Discard pressure values that are lower than the threshold.
+                while ((receiveString = bufferedReader.readLine()) != null) {
+                    StringTokenizer st = new StringTokenizer(receiveString, ";");
+                    String timeString = st.nextToken();
+                    String locationString = st.nextToken();
+                    StringTokenizer stLocation = new StringTokenizer(locationString, ",");
+                    String latitudeString = stLocation.nextToken();
+                    String longitudeString = stLocation.nextToken();
+
+                    long timeInMillisecond = Long.parseLong(timeString);
+                    double latitude = Double.parseDouble(latitudeString);
+                    double longitude = Double.parseDouble(longitudeString);
+
+                    TimeLocation timeLocation = new TimeLocation(timeInMillisecond, latitude, longitude);
+                    data.put(timeInMillisecond, timeLocation);
+                }
+                inputStream.close();
+            }
+        } catch (FileNotFoundException e) {
+            Log.e("login activity", "File not found: " + e.toString());
+        } catch (IOException e) {
+            Log.e("login activity", "Can not read file: " + e.toString());
+        }
     }
 
     @Override
@@ -67,20 +123,25 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
         double[] xy = mChartView.toRealPoint(0);
         if (seriesSelection != null) {
             //When user touched a point on the graph
-
             Intent intent = new Intent(this, MapActivity.class);
-            //Mock up location: Lancaster 54.047812, -2.801075
-            intent.putExtra(getString(R.string.showtimedata_point_location_lat), 54.047812);
-            intent.putExtra(getString(R.string.showtimedata_point_location_long), -2.801075);
+            long key = (long) xy[0];
+            TimeLocation selectedTimeLocation = data.get(key);
+
+
+            //Need to find a way to send object to another activity
+            /*
+            ArrayList<TimeLocation> timeLocationArrayList = new ArrayList<TimeLocation>();
+            timeLocationArrayList.add(selectedTimeLocation);
+            intent.putExtra(getString(R.string.intent_extra_time_location), timeLocationArrayList);
             startActivity(intent);
+            */
 
             Toast.makeText(
                     ShowTimeDataActivity.this, "Clicked point value X=" + getDate((long) xy[0], "yyyy-MM-dd HH:mm:ss.SSS"), Toast.LENGTH_SHORT).show();
         }
     }
 
-    private static String getDate(long milliSeconds, String dateFormat)
-    {
+    private static String getDate(long milliSeconds, String dateFormat) {
         // Create a DateFormatter object for displaying date in specified format.
         DateFormat formatter = new SimpleDateFormat(dateFormat);
 
@@ -130,6 +191,7 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
         XYMultipleSeriesDataset dataset = new XYMultipleSeriesDataset();
         TimeSeries series = new TimeSeries("Sensor Data");
 
+        /*
         //Read data from file. Format: <int_pressure_value>,<long_time>
         try {
             File root = Environment.getExternalStorageDirectory();
@@ -167,7 +229,13 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
         } catch (IOException e) {
             Log.e("login activity", "Can not read file: " + e.toString());
         }
+        */
 
+        Set<Long> keySet = data.keySet();
+        Long [] keys = keySet.toArray(new Long [keySet.size()]);
+        for (long key : keys){
+            series.add(new Date(key), 1);
+        }
         dataset.addSeries(series);
 
         return dataset;
@@ -179,5 +247,5 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
 //        getMenuInflater().inflate(R.menu.show_time_data, menu);
 //        return true;
 //    }
-    
+
 }

@@ -34,6 +34,7 @@ import java.util.Date;
 
 import uk.co.digitalbrainswitch.dbsblobodiary.bluetooth.BluetoothChatService;
 import uk.co.digitalbrainswitch.dbsblobodiary.bluetooth.DeviceListActivity;
+import uk.co.digitalbrainswitch.dbsblobodiary.location.UserLocation;
 import uk.co.digitalbrainswitch.dbsblobodiary.util.LowPassFilter;
 import uk.co.digitalbrainswitch.dbsblobodiary.visual.Circle;
 
@@ -44,7 +45,7 @@ public class MainActivity extends Activity {
     Typeface font;
 
     private String TAG = "DBS BLOBO DIARY";
-    private static final boolean D = true;
+    private static final boolean D = false;
 
     // Message types sent from the BluetoothChatService Handler
     public static final int MESSAGE_STATE_CHANGE = 1;
@@ -62,7 +63,7 @@ public class MainActivity extends Activity {
     private static final int REQUEST_CONNECT_DEVICE_INSECURE = 2;
     private static final int REQUEST_ENABLE_BT = 3;
 
-    //latest blobo value
+    //default blobo values and threshold
     public static float pressure = 0;
     public static double maxPressure = 23500;
     public static double minPressure = 10000;
@@ -90,6 +91,8 @@ public class MainActivity extends Activity {
 
     private float prevPressure = 0f;
 
+    private UserLocation userLocation;
+
     //UI Components
     TextView tvDisplay;
     TextView tvConnectionStatus;
@@ -115,6 +118,8 @@ public class MainActivity extends Activity {
 
         // Get local Bluetooth adapter
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
+        userLocation = new UserLocation(getApplicationContext());
     }
 
     private void initialise() {
@@ -159,7 +164,7 @@ public class MainActivity extends Activity {
         longSqueezeDuration = sharedPref.getInt(getString(R.string.long_squeeze_duration),
                 getResources().getInteger(R.integer.long_squeeze_duration_default_value));
 
-        performAction();
+        //performAction();
     }
 
     @Override
@@ -233,7 +238,7 @@ public class MainActivity extends Activity {
     }
 
     private void showTimeData() {
-        Intent intent = new Intent(this, ShowTimeDataActivity.class);
+        Intent intent = new Intent(this, TimeDataListActivity.class);
         startActivity(intent);
     }
 
@@ -465,14 +470,15 @@ public class MainActivity extends Activity {
     }
 
 
-    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_EEEE");
+    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_EEEE"); //e.g. 2013-10-14_Monday
 
-    private void saveDataToFile(long timeInMillies, String data) {
+    private void saveTimeAndLocationToFile(long currentTimeInMillies, String data) {
 
         String todayDateString = sdf.format(new Date());
 
         File root = Environment.getExternalStorageDirectory();
         System.out.println("################################################");
+
         //create directory if it does not exist
         File folder = new File(root + "/Download/data/");
         if (!folder.exists()) {
@@ -486,11 +492,9 @@ public class MainActivity extends Activity {
 
         //create file if it does not exist
         File file = new File(folder, todayDateString + ".txt");
-        boolean success = true;
-
         try {
             if (!file.exists()) {
-                success = file.createNewFile();
+                boolean success = file.createNewFile();
                 if (success) {
                     System.out.println("SUCCESS");
                 } else {
@@ -498,7 +502,7 @@ public class MainActivity extends Activity {
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.e("TAG", "Could not write file " + e.getMessage());
         }
         System.out.println("################################################");
 
@@ -506,7 +510,7 @@ public class MainActivity extends Activity {
             if (root.canWrite()) {
                 FileWriter filewriter = new FileWriter(file, true);
                 BufferedWriter out = new BufferedWriter(filewriter);
-                out.write(data + "\n");
+                out.write(currentTimeInMillies + ";" +  data + "\n");
                 out.close();
             }
         } catch (IOException e) {
@@ -515,8 +519,6 @@ public class MainActivity extends Activity {
     }
 
     private void saveValueToFile(String data) {
-
-
 //        File root = Environment.getExternalStorageDirectory();
 //        File file = new File(root, "Download/values.txt");
 //
@@ -536,6 +538,10 @@ public class MainActivity extends Activity {
         Toast.makeText(getApplicationContext(), getString(R.string.long_squeeze) + " triggered!", Toast.LENGTH_SHORT).show();
         long pattern[] = {0, 300, 200, 300, 200, 300, 0};
         vibrate(pattern);
-        saveDataToFile(System.currentTimeMillis(), "EVENT");
+
+        //get GPS location
+        //Check out http://www.androidhive.info/2012/07/android-gps-location-manager-tutorial/
+
+        saveTimeAndLocationToFile(System.currentTimeMillis(), "GPS LOCATION");
     }
 }

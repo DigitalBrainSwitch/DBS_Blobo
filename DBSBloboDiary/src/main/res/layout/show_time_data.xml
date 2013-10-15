@@ -9,7 +9,7 @@
         android:layout_height="wrap_content"
         android:text="Date: "
         android:id="@+id/tvShowTimeDate"
-        android:layout_gravity="left|center_vertical"
+        android:layout_gravity="center_vertical|bottom|left"
         android:textSize="@dimen/textview_font_size"
         android:paddingBottom="10dp" />
 

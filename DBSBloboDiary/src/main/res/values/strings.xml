@@ -58,8 +58,18 @@
     <string name="long_squeeze">Long Squeeze</string>
     <string name="title_activity_map">MapActivity</string>
 
-    <!-- ShowTimeDataActivity intent extra-->
+    <!-- ShowTimeDataActivity intent extra -->
     <string name="showtimedata_point_location_long">SHOWTIMEDATA_POINT_LOCATION_LONG</string>
     <string name="showtimedata_point_location_lat">SHOWTIMEDATA_POINT_LOCATION_LAT</string>
+    <string name="title_activity_time_data_list">Recorded Dates</string>
+
+    <!-- Latitude, longitude format -->
+    <string name="latitude_longitude">%1$.8f, %2$.8f</string>
+
+    <!-- Intent Key Strings -->
+    <string name="intent_extra_selected_file_name">INTENT_EXTRA_SELECTED_FILE_NAME</string>
+    <string name="intent_extra_time_location">INTENT_EXTRA_TIME_LOCATION</string>
+
+    <string name="stored_data_directory">/Download/data</string>
 
 </resources>

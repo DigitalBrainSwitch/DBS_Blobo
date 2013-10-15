@@ -68,6 +68,10 @@
         <activity
             android:name="uk.co.digitalbrainswitch.dbsblobodiary.MapActivity"
             android:label="@string/title_activity_map" >
+        </activity>
+        <activity
+            android:name="uk.co.digitalbrainswitch.dbsblobodiary.TimeDataListActivity"
+            android:label="@string/title_activity_time_data_list" >
 
         </activity>
     </application>
