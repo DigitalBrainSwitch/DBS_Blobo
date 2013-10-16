@@ -127,9 +127,10 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
             long key = (long) seriesSelection.getXValue();
             TimeLocation selectedTimeLocation = data.get(key);
             intent.putExtra(getString(R.string.intent_extra_time_location), selectedTimeLocation);
+            intent.putExtra(getString(R.string.intent_extra_number_of_map_points), getString(R.string.single_map_point));
             startActivity(intent);
-            Toast.makeText(
-                    ShowTimeDataActivity.this, "Clicked point value X=" + getDate((long) xy[0], "yyyy-MM-dd HH:mm:ss.SSS"), Toast.LENGTH_SHORT).show();
+//            Toast.makeText(
+//                    ShowTimeDataActivity.this, "Clicked point value X=" + getDate((long) xy[0], "yyyy-MM-dd HH:mm:ss.SSS"), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -150,15 +151,17 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
         renderer.setAxisTitleTextSize(16);
         renderer.setChartTitleTextSize(20);
         renderer.setLabelsTextSize(25);
-        renderer.setLegendTextSize(20);
-        renderer.setPointSize(20f);
+        //renderer.setLegendTextSize(20);
+        renderer.setShowLegend(false);
+        renderer.setPointSize(25f);
         renderer.setYAxisMax(1.5f);
         renderer.setYAxisMin(0.5f);
         renderer.setZoomEnabled(true, false);
         renderer.setZoomButtonsVisible(true);
+
         renderer.setPanEnabled(true, false); //Enable panning for X axis, but not Y axis
         renderer.setClickEnabled(true); //Make chart points clickable
-        renderer.setMargins(new int[]{300, 20, 200, 10}); //top, left, bottom, right
+        renderer.setMargins(new int[]{100, 20, 150, 10}); //top, left, bottom, right
 
         XYSeriesRenderer r = new XYSeriesRenderer();
 
@@ -182,46 +185,6 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
     private XYMultipleSeriesDataset getDateDataset() {
         XYMultipleSeriesDataset dataset = new XYMultipleSeriesDataset();
         TimeSeries series = new TimeSeries("Sensor Data");
-
-        /*
-        //Read data from file. Format: <int_pressure_value>,<long_time>
-        try {
-            File root = Environment.getExternalStorageDirectory();
-            File file = new File(root, "Download/test_data.txt");
-            FileInputStream inputStream = new FileInputStream(file);
-
-            if (inputStream != null) {
-                InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-                BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-
-                String receiveString;
-
-                //Read every line from file. Discard pressure values that are lower than the threshold.
-                while ((receiveString = bufferedReader.readLine()) != null) {
-                    StringTokenizer st = new StringTokenizer(receiveString, ",");
-                    String pressureString = st.nextToken();
-                    int pressureVal = Integer.parseInt(pressureString);
-
-                    //threshold cut off value. This value differs and depends on the Blobo. It requires an interface for setting the values.
-                    //read threshold value from shared preference
-                    if (pressureVal < 22000) {
-                        continue;
-                    } else {
-                        pressureVal = 1;
-                    }
-                    String timeString = st.nextToken();
-                    long time = Long.parseLong(timeString);
-
-                    series.add(new Date(time), pressureVal);
-                }
-                inputStream.close();
-            }
-        } catch (FileNotFoundException e) {
-            Log.e("login activity", "File not found: " + e.toString());
-        } catch (IOException e) {
-            Log.e("login activity", "Can not read file: " + e.toString());
-        }
-        */
 
         Set<Long> keySet = data.keySet();
         Long [] keys = keySet.toArray(new Long [keySet.size()]);

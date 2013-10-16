@@ -69,7 +69,10 @@
     <!-- Intent Key Strings -->
     <string name="intent_extra_selected_file_name">INTENT_EXTRA_SELECTED_FILE_NAME</string>
     <string name="intent_extra_time_location">INTENT_EXTRA_TIME_LOCATION</string>
+    <string name="intent_extra_number_of_map_points">INTENT_EXTRA_NUMBER_OF_MAP_POINTS</string>>
+    <string name="multiple_map_points">MULTIPLE_MAP_POINTS</string>
+    <string name="single_map_point">SINGLE_MAP_POINT</string>
 
     <string name="stored_data_directory">/Download/data</string>
-
+    <string name="title_activity_map_list">Map List Activity</string>
 </resources>

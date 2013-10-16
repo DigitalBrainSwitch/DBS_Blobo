@@ -28,7 +28,7 @@ import java.util.Locale;
 
 import uk.co.digitalbrainswitch.dbsblobodiary.location.TimeLocation;
 
-public class MapActivity extends Activity {
+public class MapActivity extends Activity implements GoogleMap.OnMarkerClickListener {
 
     //Mock up location: Lancaster 54.048606,-2.800511
     //Mock up location: Lancaster University 54.011653,-2.790509
@@ -41,15 +41,44 @@ public class MapActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.map);
 
-        Bundle bundle = getIntent().getExtras();
-        TimeLocation tl = bundle.getParcelable(getString(R.string.intent_extra_time_location));
-
         //Display the point on the map
         googleMap = ((MapFragment) getFragmentManager().findFragmentById(R.id.fShowMap)).getMap(); //get MapFragment from layout
         googleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+
+        Bundle bundle = getIntent().getExtras();
+
+        //check if single or multiple points
+        String numberOfPoint = bundle.getString(getString(R.string.intent_extra_number_of_map_points));
+
+        if(numberOfPoint.compareTo(getString(R.string.multiple_map_points)) == 0){
+            initialiseMultiplePointsMap(bundle);
+        }else if(numberOfPoint.compareTo(getString(R.string.single_map_point)) == 0){
+            initialiseSinglePointMap(bundle);
+        }
+    }
+
+    private void initialiseMultiplePointsMap(Bundle bundle){
+        String selectedFileName = bundle.getString(getString(R.string.intent_extra_selected_file_name));
+    }
+
+    private void initialiseSinglePointMap(Bundle bundle){
+        TimeLocation tl = bundle.getParcelable(getString(R.string.intent_extra_time_location));
+
         LatLng latLng = new LatLng(tl.getLatitude(), tl.getLongitude());
         Marker marker = googleMap.addMarker(new MarkerOptions().position(latLng));
 
+        String addressText = getAddress(latLng);
+
+        marker.setTitle("Time: " + getDateTime(tl.getTimeInMillisecond()));
+        marker.setSnippet(addressText);
+        marker.showInfoWindow();
+        googleMap.setOnMarkerClickListener(this);
+        //googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 13), 2000, null);
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 13));
+    }
+
+    //resolve address from geolocation (need internet)
+    private String getAddress(LatLng latLng){
         String addressText = "";
 
         if (isOnline()) {
@@ -70,11 +99,7 @@ public class MapActivity extends Activity {
             }
         }
 
-        marker.setTitle("Time: " + getDateTime(tl.getTimeInMillisecond()));
-        marker.setSnippet(addressText);
-        marker.showInfoWindow();
-        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 13), 2000, null);
-
+        return addressText;
     }
 
     private String getDateTime(long timeInMilliSecond){
@@ -91,6 +116,13 @@ public class MapActivity extends Activity {
         if (netInfo != null && netInfo.isConnectedOrConnecting()) {
             return true;
         }
+        return false;
+    }
+
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+
+        //Start the diary for reflection
         return false;
     }
 

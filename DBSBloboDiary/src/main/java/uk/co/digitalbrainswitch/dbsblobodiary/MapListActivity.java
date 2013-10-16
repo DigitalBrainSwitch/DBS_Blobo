@@ -1,7 +1,5 @@
 package uk.co.digitalbrainswitch.dbsblobodiary;
 
-//Check out tutorial http://www.vogella.com/articles/AndroidListView/article.html for example code
-
 import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
@@ -17,37 +15,37 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListAdapter;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TimeDataListActivity extends ListActivity {
+public class MapListActivity extends ListActivity {
 
     Typeface font;
 
     AdapterView.OnItemClickListener itemListener;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //setContentView(R.layout.time_data_list);
+        //setContentView(R.layout.map_data_list);
 
         font = ((MyApplication) getApplication()).getCustomTypeface();
 
-        //initialise item click listener
-        //when user selects an item, it starts an activity to show visualisation of the selected file data
         itemListener = new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long l) {
                 //Use intent to start visualisation activity
-                Intent intent = new Intent(TimeDataListActivity.this, ShowTimeDataActivity.class);
+                Intent intent = new Intent(MapListActivity.this, MapActivity.class);
                 String selectFileName = parent.getItemAtPosition(position).toString();
                 intent.putExtra(getString(R.string.intent_extra_selected_file_name), selectFileName);
+                intent.putExtra(getString(R.string.intent_extra_number_of_map_points), getString(R.string.multiple_map_points));
                 startActivity(intent);
-                TimeDataListActivity.this.finish();
+                MapListActivity.this.finish();
             }
         };
+
     }
 
     @Override
@@ -60,7 +58,6 @@ public class TimeDataListActivity extends ListActivity {
         getListView().setOnItemClickListener(itemListener);
     }
 
-
     //Creates and returns a custom list adapter for the current list activity
     private CustomListAdapter createAdapter() {
         File root = Environment.getExternalStorageDirectory();
@@ -72,10 +69,17 @@ public class TimeDataListActivity extends ListActivity {
                 fileNamesList.add(removeExtension(f.getName()));
             }
         }
-        CustomListAdapter adapter = new CustomListAdapter(this, R.layout.time_data_list, fileNamesList);
+        CustomListAdapter adapter = new CustomListAdapter(this, R.layout.map_data_list, fileNamesList);
 
         return adapter;
     }
+
+    //    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        // Inflate the menu; this adds items to the action bar if it is present.
+//        getMenuInflater().inflate(R.menu.map_list, menu);
+//        return true;
+//    }
 
     //method for removing file extension from file name
     private static String removeExtension(String s) {
@@ -98,19 +102,12 @@ public class TimeDataListActivity extends ListActivity {
         return filename.substring(0, extensionIndex);
     }
 
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        // Inflate the menu; this adds items to the action bar if it is present.
-//        getMenuInflater().inflate(R.menu.time_data_list, menu);
-//        return true;
-//    }
-
     //private class for creating a custom list adaptor
     private class CustomListAdapter extends ArrayAdapter {
 
         private Context mContext;
         private int id;
-        private List <String>items ;
+        private List<String> items ;
 
         public CustomListAdapter(Context context, int textViewResourceId , List<String> list )
         {
@@ -129,7 +126,7 @@ public class TimeDataListActivity extends ListActivity {
                 mView = vi.inflate(id, null);
             }
 
-            TextView text = (TextView) mView.findViewById(R.id.tvCustomListItem);
+            TextView text = (TextView) mView.findViewById(R.id.tvCustomMapListItem);
 
             if(items.get(position) != null )
             {
@@ -140,4 +137,5 @@ public class TimeDataListActivity extends ListActivity {
             return mView;
         }
     }
+    
 }
