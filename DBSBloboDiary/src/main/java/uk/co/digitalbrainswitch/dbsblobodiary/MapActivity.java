@@ -8,23 +8,34 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.app.Activity;
+import android.os.Environment;
 import android.util.Log;
 import android.view.Menu;
 
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
+import java.util.StringTokenizer;
+import java.util.TreeMap;
 
 import uk.co.digitalbrainswitch.dbsblobodiary.location.TimeLocation;
 
@@ -34,7 +45,7 @@ public class MapActivity extends Activity implements GoogleMap.OnMarkerClickList
     //Mock up location: Lancaster University 54.011653,-2.790509
 
     private GoogleMap googleMap;
-
+    TreeMap<Long, TimeLocation> data;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +55,12 @@ public class MapActivity extends Activity implements GoogleMap.OnMarkerClickList
         //Display the point on the map
         googleMap = ((MapFragment) getFragmentManager().findFragmentById(R.id.fShowMap)).getMap(); //get MapFragment from layout
         googleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+    }
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
 
         Bundle bundle = getIntent().getExtras();
 
@@ -58,7 +75,76 @@ public class MapActivity extends Activity implements GoogleMap.OnMarkerClickList
     }
 
     private void initialiseMultiplePointsMap(Bundle bundle){
+        data = new TreeMap<Long, TimeLocation>();
         String selectedFileName = bundle.getString(getString(R.string.intent_extra_selected_file_name));
+        readDataFromFile(selectedFileName);
+
+        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+
+        for(TreeMap.Entry<Long, TimeLocation> entry : data.entrySet()){
+            TimeLocation tl = entry.getValue();
+            LatLng latLng = new LatLng(tl.getLatitude(), tl.getLongitude());
+            Marker marker = googleMap.addMarker(new MarkerOptions().position(latLng));
+
+            String addressText = getAddress(latLng);
+            marker.setTitle("Time: " + getDateTime(tl.getTimeInMillisecond()));
+            marker.setSnippet(addressText);
+            marker.showInfoWindow();
+            builder.include(latLng);
+            googleMap.setOnMarkerClickListener(this);
+        }
+
+
+        LatLngBounds bounds = builder.build();
+        final CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, 200);
+
+        googleMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
+            @Override
+            public void onCameraChange(CameraPosition cameraPosition) {
+                googleMap.moveCamera(cu);
+                googleMap.setOnCameraChangeListener(null);
+            }
+        });
+//        googleMap.moveCamera(cu);
+
+    }
+
+    private void readDataFromFile(String fileName) {
+        File root = Environment.getExternalStorageDirectory();
+        File storedDirectory = new File(root, getString(R.string.stored_data_directory));
+        File file = new File(storedDirectory, fileName + ".txt");
+        try {
+            FileInputStream inputStream = new FileInputStream(file);
+
+            if (inputStream != null) {
+                InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+                BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+
+                String receiveString;
+
+                //Read every line from file. Discard pressure values that are lower than the threshold.
+                while ((receiveString = bufferedReader.readLine()) != null) {
+                    StringTokenizer st = new StringTokenizer(receiveString, ";");
+                    String timeString = st.nextToken();
+                    String locationString = st.nextToken();
+                    StringTokenizer stLocation = new StringTokenizer(locationString, ",");
+                    String latitudeString = stLocation.nextToken();
+                    String longitudeString = stLocation.nextToken();
+
+                    long timeInMillisecond = Long.parseLong(timeString);
+                    double latitude = Double.parseDouble(latitudeString);
+                    double longitude = Double.parseDouble(longitudeString);
+
+                    TimeLocation timeLocation = new TimeLocation(timeInMillisecond, latitude, longitude);
+                    data.put(timeInMillisecond, timeLocation);
+                }
+                inputStream.close();
+            }
+        } catch (FileNotFoundException e) {
+            Log.e("login activity", "File not found: " + e.toString());
+        } catch (IOException e) {
+            Log.e("login activity", "Can not read file: " + e.toString());
+        }
     }
 
     private void initialiseSinglePointMap(Bundle bundle){

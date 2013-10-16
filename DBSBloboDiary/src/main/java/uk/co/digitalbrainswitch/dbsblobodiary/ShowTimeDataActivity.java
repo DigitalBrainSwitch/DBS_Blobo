@@ -8,6 +8,7 @@ import android.app.Activity;
 import android.os.Environment;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -148,12 +149,12 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
         XYMultipleSeriesRenderer renderer = new XYMultipleSeriesRenderer();
         //renderer.setBackgroundColor(Color.BLACK);
 
-        renderer.setAxisTitleTextSize(16);
+        renderer.setAxisTitleTextSize(20);
         renderer.setChartTitleTextSize(20);
         renderer.setLabelsTextSize(25);
         //renderer.setLegendTextSize(20);
         renderer.setShowLegend(false);
-        renderer.setPointSize(25f);
+        renderer.setPointSize(35f);
         renderer.setYAxisMax(1.5f);
         renderer.setYAxisMin(0.5f);
         renderer.setZoomEnabled(true, false);
@@ -196,11 +197,31 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
         return dataset;
     }
 
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        // Inflate the menu; this adds items to the action bar if it is present.
-//        getMenuInflater().inflate(R.menu.show_time_data, menu);
-//        return true;
-//    }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.show_time_data, menu);
+        return true;
+    }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        super.onOptionsItemSelected(item);
+
+        switch (item.getItemId()) {
+            case (R.id.menu_show_map_from_time):
+                showMap();
+                break;
+            default:
+                break;
+        }
+        return true;
+    }
+
+    private void showMap(){
+        Intent intent = new Intent(ShowTimeDataActivity.this, MapActivity.class);
+        intent.putExtra(getString(R.string.intent_extra_selected_file_name), selectedFileName);
+        intent.putExtra(getString(R.string.intent_extra_number_of_map_points), getString(R.string.multiple_map_points));
+        startActivity(intent);
+    }
 }
