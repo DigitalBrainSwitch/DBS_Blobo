@@ -1,11 +1,14 @@
 package uk.co.digitalbrainswitch.dbsblobodiary;
 
+import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
+import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Activity;
@@ -23,6 +26,12 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesClient;
+import com.google.android.gms.location.LocationClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -34,13 +43,12 @@ import java.util.Date;
 
 import uk.co.digitalbrainswitch.dbsblobodiary.bluetooth.BluetoothChatService;
 import uk.co.digitalbrainswitch.dbsblobodiary.bluetooth.DeviceListActivity;
-import uk.co.digitalbrainswitch.dbsblobodiary.location.UserLocation;
 import uk.co.digitalbrainswitch.dbsblobodiary.util.LowPassFilter;
 import uk.co.digitalbrainswitch.dbsblobodiary.visual.Circle;
 
 import static android.preference.PreferenceManager.getDefaultSharedPreferences;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements LocationListener, GooglePlayServicesClient.ConnectionCallbacks, GooglePlayServicesClient.OnConnectionFailedListener {
 
     Typeface font;
 
@@ -88,14 +96,24 @@ public class MainActivity extends Activity {
     long finalTime = 0L;
     private Handler timerHandler = new Handler();
 
-
     private float prevPressure = 0f;
-
-    private UserLocation userLocation;
 
     //UI Components
     TextView tvDisplay;
     TextView tvConnectionStatus;
+
+    //location variables
+    private LocationRequest mLocationRequest;
+    private LocationClient mLocationClient;
+    boolean mUpdatesRequested = false;
+
+    public final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
+    public static final int MILLISECONDS_PER_SECOND = 1000;
+    public static final int UPDATE_INTERVAL_IN_SECONDS = 5;
+    public static final int FAST_CEILING_IN_SECONDS = 1;
+    public static final long UPDATE_INTERVAL_IN_MILLISECONDS = MILLISECONDS_PER_SECOND * UPDATE_INTERVAL_IN_SECONDS;
+    public static final long FAST_INTERVAL_CEILING_IN_MILLISECONDS = MILLISECONDS_PER_SECOND * FAST_CEILING_IN_SECONDS;
+    public Location currentLocation = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -119,7 +137,7 @@ public class MainActivity extends Activity {
         // Get local Bluetooth adapter
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
-        userLocation = new UserLocation(getApplicationContext());
+
     }
 
     private void initialise() {
@@ -128,6 +146,16 @@ public class MainActivity extends Activity {
         tvConnectionStatus = (TextView) findViewById(R.id.tvMainConnectionStatus);
         tvConnectionStatus.setTypeface(font);
 
+        // Create a new global location parameters object
+        mLocationRequest = LocationRequest.create();
+        //update interval
+        mLocationRequest.setInterval(UPDATE_INTERVAL_IN_MILLISECONDS);
+        // Use high accuracy
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        // Set the interval ceiling to one minute
+        mLocationRequest.setFastestInterval(FAST_INTERVAL_CEILING_IN_MILLISECONDS);
+        //Create a new location client
+        mLocationClient = new LocationClient(this, this, this);
     }
 
     @Override
@@ -140,6 +168,8 @@ public class MainActivity extends Activity {
         } else {
             if (mChatService == null) setupChat();
         }
+        if(!mLocationClient.isConnected())
+            mLocationClient.connect();
     }
 
     @Override
@@ -175,6 +205,14 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onStop() {
+        // If the client is connected
+        if (mLocationClient.isConnected()) {
+            stopPeriodicUpdates();
+        }
+
+        // After disconnect() is called, the client is considered "dead".
+        //mLocationClient.disconnect();
+
         super.onStop();
         if (D) Log.e(TAG, "-- ON STOP --");
     }
@@ -363,6 +401,7 @@ public class MainActivity extends Activity {
                     byte[] writeBuf = (byte[]) msg.obj;
                     break;
                 case MESSAGE_READ:
+                    //read from blobo device
                     byte[] readBuf = (byte[]) msg.obj;
                     int numA = ((int) readBuf[1] & 0xff) + ((int) readBuf[0] & 0xff) * 256;
 
@@ -377,6 +416,7 @@ public class MainActivity extends Activity {
                         final String formattedTime = formatter.format(calendar.getTime());
                         tvDisplay.setText(String.valueOf((int) pressure) + "\t" + formattedTime);
 
+                        /*
                         Thread threadOfValues = new Thread() {
                             @Override
                             public void run() {
@@ -398,6 +438,7 @@ public class MainActivity extends Activity {
                             }
                         };
                         threadOfValues.start();
+                        */
                     } else {
                         //Log.i("blobo out of range",String.valueOf(numA));
                     }
@@ -474,37 +515,37 @@ public class MainActivity extends Activity {
 
     private void saveTimeAndLocationToFile(long currentTimeInMillies, String data) {
 
-        String todayDateString = sdf.format(new Date());
-
         File root = Environment.getExternalStorageDirectory();
-        System.out.println("################################################");
 
         //create directory if it does not exist
         File folder = new File(root + "/Download/data/");
         if (!folder.exists()) {
             boolean success = folder.mkdirs();
             if (success) {
-                System.out.println("SUCCESS");
+                //System.out.println("SUCCESS");
             } else {
-                System.out.println("FAILED");
+                showAlertMessage("Error" , "Unable to create " + folder.getAbsolutePath());
+                //System.out.println("FAILED");
             }
         }
 
+        String todayDateString = sdf.format(new Date());
         //create file if it does not exist
         File file = new File(folder, todayDateString + ".txt");
         try {
             if (!file.exists()) {
                 boolean success = file.createNewFile();
                 if (success) {
-                    System.out.println("SUCCESS");
+                    //System.out.println("SUCCESS");
                 } else {
-                    System.out.println("FAILED");
+                    showAlertMessage("Error" , "Unable to create " + file.getAbsolutePath());
+                    //System.out.println("FAILED");
                 }
             }
         } catch (IOException e) {
             Log.e("TAG", "Could not write file " + e.getMessage());
         }
-        System.out.println("################################################");
+        //System.out.println("################################################");
 
         try {
             if (root.canWrite()) {
@@ -535,13 +576,87 @@ public class MainActivity extends Activity {
     }
 
     private void performAction() {
-        Toast.makeText(getApplicationContext(), getString(R.string.long_squeeze) + " triggered!", Toast.LENGTH_SHORT).show();
-        long pattern[] = {0, 300, 200, 300, 200, 300, 0};
-        vibrate(pattern);
+        startPeriodicUpdates();
 
-        //get GPS location
-        //Check out http://www.androidhive.info/2012/07/android-gps-location-manager-tutorial/
+        Thread thread = new Thread(){
+            @Override
+            public void run() {
+                //Toast.makeText(getApplicationContext(), getString(R.string.long_squeeze) + " triggered!", Toast.LENGTH_SHORT).show();
+                try {
+                    while(currentLocation == null) {
+                        sleep(1000);
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
 
-        saveTimeAndLocationToFile(System.currentTimeMillis(), "GPS LOCATION");
+                //get GPS location
+                //Check out http://www.androidhive.info/2012/07/android-gps-location-manager-tutorial/
+
+                long pattern[] = {0, 300, 200, 300, 200, 300, 0};
+                vibrate(pattern);
+
+                saveTimeAndLocationToFile(System.currentTimeMillis(), currentLocation.getLatitude() + "," + currentLocation.getLongitude());
+
+                //stop update after a location is received
+                stopPeriodicUpdates();
+                //reset current location
+                currentLocation = null;
+            }
+        };
+        thread.start();
+    }
+
+    //Method for displaying a popup alert dialog
+    private void showAlertMessage(String title, String Message) {
+        AlertDialog.Builder popupBuilder = new AlertDialog.Builder(this);
+        popupBuilder.setTitle(title);
+        popupBuilder.setMessage(Message);
+        popupBuilder.setPositiveButton("OK", null);
+        popupBuilder.show();
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        Log.d(TAG, "Connected");
+
+        if (mUpdatesRequested) {
+            startPeriodicUpdates();
+        }
+    }
+
+    private void startPeriodicUpdates() {
+        mLocationClient.requestLocationUpdates(mLocationRequest, this);
+    }
+
+    private void stopPeriodicUpdates() {
+        mLocationClient.removeLocationUpdates(this);
+    }
+
+    @Override
+    public void onDisconnected() {
+        Log.d(TAG, "Disconnected!");
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        if (connectionResult.hasResolution()) {
+            try {
+                // Start an Activity that tries to resolve the error
+                connectionResult.startResolutionForResult(this, CONNECTION_FAILURE_RESOLUTION_REQUEST);
+            } catch (IntentSender.SendIntentException e) {
+                // Log the error
+                e.printStackTrace();
+            }
+        } else {
+            // If no resolution is available, display a dialog to the user with the error.
+            Log.d(TAG, "Error");
+        }
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        Log.d(TAG, "Location Changed");
+        currentLocation = location;
     }
 }

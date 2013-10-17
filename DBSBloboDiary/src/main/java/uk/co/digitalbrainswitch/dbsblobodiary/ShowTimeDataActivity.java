@@ -1,5 +1,6 @@
 package uk.co.digitalbrainswitch.dbsblobodiary;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -35,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedHashMap;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
@@ -47,7 +49,7 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
     String selectedFileName = "NULL";
     // chart container
     private LinearLayout layout;
-    private GraphicalView mChartView;
+    private GraphicalView mChartView = null;
 
     TreeMap<Long, TimeLocation> data;
 
@@ -58,26 +60,40 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
         setContentView(R.layout.show_time_data);
 
         font = ((MyApplication) getApplication()).getCustomTypeface();
-        this.initialise();
-    }
 
-    private void initialise() {
         //get selected file name from intent extra bundle
         Bundle extra = getIntent().getExtras();
         selectedFileName = extra.getString(getString(R.string.intent_extra_selected_file_name));
 
-        data = new TreeMap<Long, TimeLocation>();
-        readDataFromFile(selectedFileName);
-
         //set up UI
         TextView txt = (TextView) findViewById(R.id.tvShowTimeDate);
         txt.setTypeface(font);
+        txt.append(selectedFileName);
+
+        this.initialise();
+
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+    }
+
+    private void initialise() {
+        data = new TreeMap<Long, TimeLocation>();
+        readDataFromFile(selectedFileName);
+
         layout = (LinearLayout) findViewById(R.id.layoutShowTimeChart);
+        if(mChartView != null)
+            layout.removeView(mChartView);
         mChartView = ChartFactory.getTimeChartView(this, getDateDataset(), getRenderer(), null);
         mChartView.setOnClickListener(this);
         layout.addView(mChartView);
 
-        txt.append(selectedFileName);
+        if(data.size() == 0){
+            showAlertMessage("Error", "Error reading data from file: " + selectedFileName + ".txt");
+            return;
+        }
     }
 
     private void readDataFromFile(String fileName) {
@@ -95,19 +111,25 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
 
                 //Read every line from file. Discard pressure values that are lower than the threshold.
                 while ((receiveString = bufferedReader.readLine()) != null) {
-                    StringTokenizer st = new StringTokenizer(receiveString, ";");
-                    String timeString = st.nextToken();
-                    String locationString = st.nextToken();
-                    StringTokenizer stLocation = new StringTokenizer(locationString, ",");
-                    String latitudeString = stLocation.nextToken();
-                    String longitudeString = stLocation.nextToken();
+                    long timeInMillisecond = -1;
+                    double latitude = -1;
+                    double longitude = -1;
+                    try {
+                        StringTokenizer st = new StringTokenizer(receiveString, ";");
+                        String timeString = st.nextToken();
+                        String locationString = st.nextToken();
+                        StringTokenizer stLocation = new StringTokenizer(locationString, ",");
+                        String latitudeString = stLocation.nextToken();
+                        String longitudeString = stLocation.nextToken();
+                        timeInMillisecond = Long.parseLong(timeString);
+                        latitude = Double.parseDouble(latitudeString);
+                        longitude = Double.parseDouble(longitudeString);
 
-                    long timeInMillisecond = Long.parseLong(timeString);
-                    double latitude = Double.parseDouble(latitudeString);
-                    double longitude = Double.parseDouble(longitudeString);
-
-                    TimeLocation timeLocation = new TimeLocation(timeInMillisecond, latitude, longitude);
-                    data.put(timeInMillisecond, timeLocation);
+                        TimeLocation timeLocation = new TimeLocation(timeInMillisecond, latitude, longitude);
+                        data.put(timeInMillisecond, timeLocation);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
                 inputStream.close();
             }
@@ -223,5 +245,14 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
         intent.putExtra(getString(R.string.intent_extra_selected_file_name), selectedFileName);
         intent.putExtra(getString(R.string.intent_extra_number_of_map_points), getString(R.string.multiple_map_points));
         startActivity(intent);
+    }
+
+    //Method for displaying a popup alert dialog
+    private void showAlertMessage(String title, String Message) {
+        AlertDialog.Builder popupBuilder = new AlertDialog.Builder(this);
+        popupBuilder.setTitle(title);
+        popupBuilder.setMessage(Message);
+        popupBuilder.setPositiveButton("OK", null);
+        popupBuilder.show();
     }
 }

@@ -1,5 +1,6 @@
 package uk.co.digitalbrainswitch.dbsblobodiary;
 
+import android.app.AlertDialog;
 import android.content.Context;
 import android.location.Address;
 import android.location.Geocoder;
@@ -34,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
+import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
 
@@ -67,21 +69,26 @@ public class MapActivity extends Activity implements GoogleMap.OnMarkerClickList
         //check if single or multiple points
         String numberOfPoint = bundle.getString(getString(R.string.intent_extra_number_of_map_points));
 
-        if(numberOfPoint.compareTo(getString(R.string.multiple_map_points)) == 0){
+        if (numberOfPoint.compareTo(getString(R.string.multiple_map_points)) == 0) {
             initialiseMultiplePointsMap(bundle);
-        }else if(numberOfPoint.compareTo(getString(R.string.single_map_point)) == 0){
+        } else if (numberOfPoint.compareTo(getString(R.string.single_map_point)) == 0) {
             initialiseSinglePointMap(bundle);
         }
     }
 
-    private void initialiseMultiplePointsMap(Bundle bundle){
+    private void initialiseMultiplePointsMap(Bundle bundle) {
         data = new TreeMap<Long, TimeLocation>();
         String selectedFileName = bundle.getString(getString(R.string.intent_extra_selected_file_name));
         readDataFromFile(selectedFileName);
 
-        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+        if(data.size() == 0){
+            showAlertMessage("Error", "Error reading data from file: " + selectedFileName + ".txt");
+            return;
+        }
 
-        for(TreeMap.Entry<Long, TimeLocation> entry : data.entrySet()){
+        //add markers onto map
+        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+        for (TreeMap.Entry<Long, TimeLocation> entry : data.entrySet()) {
             TimeLocation tl = entry.getValue();
             LatLng latLng = new LatLng(tl.getLatitude(), tl.getLongitude());
             Marker marker = googleMap.addMarker(new MarkerOptions().position(latLng));
@@ -94,10 +101,9 @@ public class MapActivity extends Activity implements GoogleMap.OnMarkerClickList
             googleMap.setOnMarkerClickListener(this);
         }
 
-
+        //move camera to show all markers
         LatLngBounds bounds = builder.build();
         final CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, 200);
-
         googleMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
             @Override
             public void onCameraChange(CameraPosition cameraPosition) {
@@ -105,8 +111,6 @@ public class MapActivity extends Activity implements GoogleMap.OnMarkerClickList
                 googleMap.setOnCameraChangeListener(null);
             }
         });
-//        googleMap.moveCamera(cu);
-
     }
 
     private void readDataFromFile(String fileName) {
@@ -124,19 +128,25 @@ public class MapActivity extends Activity implements GoogleMap.OnMarkerClickList
 
                 //Read every line from file. Discard pressure values that are lower than the threshold.
                 while ((receiveString = bufferedReader.readLine()) != null) {
-                    StringTokenizer st = new StringTokenizer(receiveString, ";");
-                    String timeString = st.nextToken();
-                    String locationString = st.nextToken();
-                    StringTokenizer stLocation = new StringTokenizer(locationString, ",");
-                    String latitudeString = stLocation.nextToken();
-                    String longitudeString = stLocation.nextToken();
+                    long timeInMillisecond = -1;
+                    double latitude = -1;
+                    double longitude = -1;
+                    try {
+                        StringTokenizer st = new StringTokenizer(receiveString, ";");
+                        String timeString = st.nextToken();
+                        String locationString = st.nextToken();
+                        StringTokenizer stLocation = new StringTokenizer(locationString, ",");
+                        String latitudeString = stLocation.nextToken();
+                        String longitudeString = stLocation.nextToken();
+                        timeInMillisecond = Long.parseLong(timeString);
+                        latitude = Double.parseDouble(latitudeString);
+                        longitude = Double.parseDouble(longitudeString);
 
-                    long timeInMillisecond = Long.parseLong(timeString);
-                    double latitude = Double.parseDouble(latitudeString);
-                    double longitude = Double.parseDouble(longitudeString);
-
-                    TimeLocation timeLocation = new TimeLocation(timeInMillisecond, latitude, longitude);
-                    data.put(timeInMillisecond, timeLocation);
+                        TimeLocation timeLocation = new TimeLocation(timeInMillisecond, latitude, longitude);
+                        data.put(timeInMillisecond, timeLocation);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
                 inputStream.close();
             }
@@ -147,7 +157,7 @@ public class MapActivity extends Activity implements GoogleMap.OnMarkerClickList
         }
     }
 
-    private void initialiseSinglePointMap(Bundle bundle){
+    private void initialiseSinglePointMap(Bundle bundle) {
         TimeLocation tl = bundle.getParcelable(getString(R.string.intent_extra_time_location));
 
         LatLng latLng = new LatLng(tl.getLatitude(), tl.getLongitude());
@@ -164,7 +174,7 @@ public class MapActivity extends Activity implements GoogleMap.OnMarkerClickList
     }
 
     //resolve address from geolocation (need internet)
-    private String getAddress(LatLng latLng){
+    private String getAddress(LatLng latLng) {
         String addressText = "";
 
         if (isOnline()) {
@@ -188,7 +198,7 @@ public class MapActivity extends Activity implements GoogleMap.OnMarkerClickList
         return addressText;
     }
 
-    private String getDateTime(long timeInMilliSecond){
+    private String getDateTime(long timeInMilliSecond) {
         DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(timeInMilliSecond);
@@ -218,5 +228,13 @@ public class MapActivity extends Activity implements GoogleMap.OnMarkerClickList
 //        getMenuInflater().inflate(R.menu.map, menu);
 //        return true;
 //    }
-    
+
+    //Method for displaying a popup alert dialog
+    private void showAlertMessage(String title, String Message) {
+        AlertDialog.Builder popupBuilder = new AlertDialog.Builder(this);
+        popupBuilder.setTitle(title);
+        popupBuilder.setMessage(Message);
+        popupBuilder.setPositiveButton("OK", null);
+        popupBuilder.show();
+    }
 }
