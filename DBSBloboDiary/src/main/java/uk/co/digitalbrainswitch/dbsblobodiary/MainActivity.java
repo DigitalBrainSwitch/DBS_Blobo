@@ -1,6 +1,9 @@
 package uk.co.digitalbrainswitch.dbsblobodiary;
 
 import android.app.AlertDialog;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
@@ -17,6 +20,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.SystemClock;
 import android.os.Vibrator;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -60,6 +64,8 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
 
     private String TAG = "DBS BLOBO DIARY";
     private static final boolean D = false;
+
+    static final int uniqueID = 782347823; // a random ID
 
     // Message types sent from the BluetoothChatService Handler
     public static final int MESSAGE_STATE_CHANGE = 1;
@@ -121,6 +127,8 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
     public static final long FAST_INTERVAL_CEILING_IN_MILLISECONDS = MILLISECONDS_PER_SECOND * FAST_CEILING_IN_SECONDS;
     public Location currentLocation = null;
 
+    NotificationManager nm;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -143,7 +151,8 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
         // Get local Bluetooth adapter
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
-
+        nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        nm.cancel(uniqueID);
     }
 
     private void initialise() {
@@ -225,6 +234,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
 
     @Override
     protected void onDestroy() {
+        nm.cancel(uniqueID);
         super.onDestroy();
         // Stop the Bluetooth chat services
         if (mChatService != null) mChatService.stop();
@@ -391,6 +401,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
                             String status = getString(R.string.title_connected_to) + " " + mConnectedDeviceName;
                             vibrate(300L);
                             setStatus(status);
+                            nm.cancel(uniqueID);
 //                            mConversationArrayAdapter.clear();
                             break;
                         case BluetoothChatService.STATE_CONNECTING:
@@ -401,6 +412,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
                             setStatus(R.string.title_not_connected);
                             tvDisplay.setText(R.string.no_pressure_value);
                             MainActivity.pressure = 0;
+                            showNotification("Blobo Disconnected", "Blobo is not connected to DBS Diary");
                             break;
                     }
                     break;
@@ -469,6 +481,21 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
         }
     };
 
+
+    private void showNotification(String title, String body){
+        //Intent intent = new Intent(this, MainActivity.class);
+        //PendingIntent pi = PendingIntent.getActivity(this, 0, intent, 0);
+
+        NotificationCompat.Builder n = new NotificationCompat.Builder(this);
+        //n.setContentIntent(pi);
+        n.setSmallIcon(R.drawable.dbs_icon);
+        n.setContentTitle(title);
+        n.setContentText(body);
+        n.setDefaults(Notification.DEFAULT_ALL);
+
+
+        nm.notify(uniqueID, n.build());
+    }
 
     private int minutes, seconds;
     //    private int currentSecond = 0;
