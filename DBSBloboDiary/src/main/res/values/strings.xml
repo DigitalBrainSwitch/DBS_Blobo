@@ -5,9 +5,9 @@
 
     <!-- Menu Strings -->
     <string name="menu_connect_blobo">Connect Blobo</string>
-    <string name="menu_show_time_data">Show By Time</string>
-    <string name="menu_show_map">Show By Map</string>
-    <string name="menu_reflection">Reflection</string>
+    <string name="menu_show_time_data">Show Events By Time</string>
+    <string name="menu_show_map">Show Events By Map</string>
+    <string name="menu_reflection">Diary</string>
     <string name="menu_settings">Settings</string>
     <string name="menu_about">About</string>
     <string name="menu_show_map_from_time">Show All On Map</string>
@@ -27,7 +27,6 @@
     <string name="title_activity_time_data_list">Pick a Day</string>
     <string name="title_activity_history">History</string>
     <string name="title_activity_map">Map View</string>
-
     <string name="stored_data_directory">/Download/data</string>
 
     <!-- Text -->
@@ -43,7 +42,7 @@
     <string name="title_connecting">Connecting...</string>
     <string name="title_connected_to">Connected to </string>
     <string name="title_not_connected">Not Connected</string>
-    <string name="no_pressure_value">-----</string>
+    <string name="no_pressure_value">----------------------------</string>
 
     <!-- DeviceListActivity -->
     <string name="scanning">scanning for devices...</string>
@@ -74,11 +73,9 @@
     <!-- Intent Key Strings -->
     <string name="intent_extra_selected_file_name">INTENT_EXTRA_SELECTED_FILE_NAME</string>
     <string name="intent_extra_time_location">INTENT_EXTRA_TIME_LOCATION</string>
-    <string name="intent_extra_number_of_map_points">INTENT_EXTRA_NUMBER_OF_MAP_POINTS</string>>
-    <string name="multiple_map_points">MULTIPLE_MAP_POINTS</string>
+    <string name="intent_extra_number_of_map_points">INTENT_EXTRA_NUMBER_OF_MAP_POINTS</string>
+>    <string name="multiple_map_points">MULTIPLE_MAP_POINTS</string>
     <string name="single_map_point">SINGLE_MAP_POINT</string>
-
-
-
+    <string name="title_activity_reflection">DBS Diary</string>
 
 </resources>

@@ -176,7 +176,7 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
         renderer.setLabelsTextSize(25);
         //renderer.setLegendTextSize(20);
         renderer.setShowLegend(false);
-        renderer.setPointSize(35f);
+        renderer.setPointSize(25f);
         renderer.setYAxisMax(1.5f);
         renderer.setYAxisMin(0.5f);
         renderer.setZoomEnabled(true, false);
@@ -190,7 +190,7 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
 
         final int DBS_BLUE_COLOR = Color.rgb(19, 164, 210); //DBS Blue rgb(19, 164, 210)
         r.setColor(DBS_BLUE_COLOR);
-        r.setPointStyle(PointStyle.CIRCLE);
+        r.setPointStyle(PointStyle.SQUARE);
         r.setFillPoints(true);
 
         renderer.addSeriesRenderer(r);

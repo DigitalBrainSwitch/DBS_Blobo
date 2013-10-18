@@ -32,17 +32,23 @@ import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.StringTokenizer;
 
 import uk.co.digitalbrainswitch.dbsblobodiary.bluetooth.BluetoothChatService;
 import uk.co.digitalbrainswitch.dbsblobodiary.bluetooth.DeviceListActivity;
+import uk.co.digitalbrainswitch.dbsblobodiary.location.TimeLocation;
 import uk.co.digitalbrainswitch.dbsblobodiary.util.LowPassFilter;
 import uk.co.digitalbrainswitch.dbsblobodiary.visual.Circle;
 
@@ -168,7 +174,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
         } else {
             if (mChatService == null) setupChat();
         }
-        if(!mLocationClient.isConnected())
+        if (!mLocationClient.isConnected())
             mLocationClient.connect();
     }
 
@@ -294,7 +300,8 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
     }
 
     private void showReflection() {
-
+        Intent intent = new Intent(this, ReflectionActivity.class);
+        startActivity(intent);
     }
 
     private void showAbout() {
@@ -524,7 +531,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
             if (success) {
                 //System.out.println("SUCCESS");
             } else {
-                showAlertMessage("Error" , "Unable to create " + folder.getAbsolutePath());
+                showAlertMessage("Error", "Unable to create " + folder.getAbsolutePath());
                 //System.out.println("FAILED");
             }
         }
@@ -538,7 +545,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
                 if (success) {
                     //System.out.println("SUCCESS");
                 } else {
-                    showAlertMessage("Error" , "Unable to create " + file.getAbsolutePath());
+                    showAlertMessage("Error", "Unable to create " + file.getAbsolutePath());
                     //System.out.println("FAILED");
                 }
             }
@@ -546,17 +553,55 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
             Log.e("TAG", "Could not write file " + e.getMessage());
         }
         //System.out.println("################################################");
-
-        try {
-            if (root.canWrite()) {
-                FileWriter filewriter = new FileWriter(file, true);
-                BufferedWriter out = new BufferedWriter(filewriter);
-                out.write(currentTimeInMillies + ";" +  data + "\n");
-                out.close();
+        if (validEvent(currentTimeInMillies, file, 60000L)) { //60000 millisec = 1 min
+            try {
+                if (root.canWrite()) {
+                    FileWriter filewriter = new FileWriter(file, true);
+                    BufferedWriter out = new BufferedWriter(filewriter);
+                    out.write(currentTimeInMillies + ";" + data + "\n");
+                    out.close();
+                }
+            } catch (IOException e) {
+                Log.e("TAG", "Could not write file " + e.getMessage());
             }
-        } catch (IOException e) {
-            Log.e("TAG", "Could not write file " + e.getMessage());
         }
+    }
+
+    //Assumption: A valid event should be at least <timeThreshold> milliseconds after the last event
+    //Check if event time is within <timeThreshold> milliseconds of any event saved in the file
+    private boolean validEvent(long currentTimeInMillies, File entryFile, long timeThreshold) {
+        try {
+            FileInputStream inputStream = new FileInputStream(entryFile);
+
+            if (inputStream != null) {
+                InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+                BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+
+                String receiveString;
+
+                //Read every line from file. return false if a previous is within <timeThreshold> milliseconds of current event
+                while ((receiveString = bufferedReader.readLine()) != null) {
+                    long timeInMillisecond = -1;
+                    try {
+                        StringTokenizer st = new StringTokenizer(receiveString, ";");
+                        String timeString = st.nextToken();
+                        timeInMillisecond = Long.parseLong(timeString);
+                        if (Math.abs(currentTimeInMillies - timeInMillisecond) < timeThreshold) {
+                            return false;
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                inputStream.close();
+            }
+        } catch (FileNotFoundException e) {
+            Log.e("login activity", "File not found: " + e.toString());
+        } catch (IOException e) {
+            Log.e("login activity", "Can not read file: " + e.toString());
+        }
+
+        return true;
     }
 
     private void saveValueToFile(String data) {
@@ -578,13 +623,13 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
     private void performAction() {
         startPeriodicUpdates();
 
-        Thread thread = new Thread(){
+        Thread thread = new Thread() {
             @Override
             public void run() {
                 //Toast.makeText(getApplicationContext(), getString(R.string.long_squeeze) + " triggered!", Toast.LENGTH_SHORT).show();
                 try {
                     //wait for location update
-                    while(currentLocation == null) {
+                    while (currentLocation == null) {
                         sleep(500);
                     }
                 } catch (InterruptedException e) {

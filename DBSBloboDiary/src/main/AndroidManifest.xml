@@ -79,6 +79,11 @@
             android:label="@string/title_activity_map_list"
             android:theme="@android:style/Theme.Holo.Light.Dialog" >
         </activity>
+        <activity
+            android:name="uk.co.digitalbrainswitch.dbsblobodiary.ReflectionActivity"
+            android:label="@string/title_activity_reflection"
+            android:theme="@android:style/Theme.Holo.Light.Dialog" >
+        </activity>
     </application>
 
 </manifest>
