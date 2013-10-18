@@ -14,7 +14,7 @@ import uk.co.digitalbrainswitch.dbsblobodiary.R;
  */
 public class Circle extends SurfaceView implements SurfaceHolder.Callback {
 
-    private Paint paint;
+    private Paint paint, paintStroke;
     private Paint[] paintCircle;
     private Paint[] paintRect;
     private CircleThread thread;
@@ -25,8 +25,12 @@ public class Circle extends SurfaceView implements SurfaceHolder.Callback {
         getHolder().addCallback(this);
 
         paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paintStroke = new Paint(Paint.ANTI_ALIAS_FLAG);
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
+        paintStroke.setStyle(Paint.Style.STROKE);
         paint.setColor(getResources().getColor(R.color.gray));
+        paintStroke.setColor(getResources().getColor(R.color.dark_gray));
+        paintStroke.setStrokeWidth(30.0F);
     }
 
     @Override
@@ -34,8 +38,9 @@ public class Circle extends SurfaceView implements SurfaceHolder.Callback {
 
     public void colorize(Canvas canvas){
 
-        if (MainActivity.pressure == 0 || MainActivity.pressure < MainActivity.thresholdPressure) paint.setColor(getResources().getColor(R.color.gray));
-        else if (MainActivity.pressure >= MainActivity.thresholdPressure) paint.setColor(getResources().getColor(R.color.green_1));
+        if (MainActivity.pressure < 1) {paint.setColor(getResources().getColor(R.color.gray)); paintStroke.setColor(getResources().getColor(R.color.dark_gray));}
+        else if (MainActivity.pressure < MainActivity.thresholdPressure) {paintStroke.setColor(getResources().getColor(R.color.dbs_blue)); paint.setColor(getResources().getColor(R.color.gray));}//{paint.setColor(getResources().getColor(R.color.yellow_2)); paint.setStrokeWidth(30.0F); paint.setStyle(Paint.Style.STROKE);}
+        else if (MainActivity.pressure >= MainActivity.thresholdPressure) {paintStroke.setColor(getResources().getColor(R.color.yellow_2)); paint.setColor(getResources().getColor(R.color.green_1));}//{ paint.setColor(getResources().getColor(R.color.green_1)); paint.setStrokeWidth(30.0F); paint.setStyle(Paint.Style.FILL_AND_STROKE);}
 //        else if (MainActivity.pressure > 10000 && MainActivity.pressure <= 16600) paint.setColor(getResources().getColor(R.color.green_1));
 //        else if(MainActivity.pressure > 16600 && MainActivity.pressure <= 16700) paint.setColor(getResources().getColor(R.color.green_2));
 //        else if(MainActivity.pressure > 16700 && MainActivity.pressure <= 16800) paint.setColor(getResources().getColor(R.color.green_3));
@@ -117,6 +122,7 @@ public class Circle extends SurfaceView implements SurfaceHolder.Callback {
 
         //the big one
         canvas.drawCircle(xPosition, yPosition, radius, paint);
+        canvas.drawCircle(xPosition, yPosition, radius, paintStroke);
     }
 
     private final int POS_OFFSET = 80;
@@ -124,7 +130,7 @@ public class Circle extends SurfaceView implements SurfaceHolder.Callback {
     public void surfaceCreated(SurfaceHolder holder) {
         radius = this.getWidth()/2 - POS_OFFSET;
         xPosition = this.getWidth() - radius - POS_OFFSET;
-        yPosition = (this.getHeight() - radius)/2 + POS_OFFSET;
+        yPosition = (this.getHeight() - radius)/2 + POS_OFFSET + POS_OFFSET / 2;
 
         thread = new CircleThread(getHolder(), this);
         thread.setRunning(true);

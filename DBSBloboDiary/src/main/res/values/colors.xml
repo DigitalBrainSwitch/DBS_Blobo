@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="dark_gray">#555555</color>
+    <color name="dbs_blue">#13A4D2</color>
     <color name="gray">#cccccc</color>
     <color name="green_1">#07B61E</color>
     <color name="green_2">#1DBC21</color>

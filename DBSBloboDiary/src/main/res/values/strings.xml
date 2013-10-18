@@ -43,6 +43,7 @@
     <string name="title_connecting">Connecting...</string>
     <string name="title_connected_to">Connected to </string>
     <string name="title_not_connected">Not Connected</string>
+    <string name="no_pressure_value">-----</string>
 
     <!-- DeviceListActivity -->
     <string name="scanning">scanning for devices...</string>

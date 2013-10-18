@@ -275,6 +275,14 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
         return true;
     }
 
+    private void connectBluetoothBlobo() {
+        //connect blobo via bluetooth
+        //Connect to bluetooth and display read data on tvDisplay
+        tvDisplay.setText("");
+        Intent serverIntent = new Intent(getApplicationContext(), DeviceListActivity.class);
+        startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE_INSECURE);
+    }
+
     private void showTimeData() {
         Intent intent = new Intent(this, TimeDataListActivity.class);
         startActivity(intent);
@@ -334,14 +342,6 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
         }
     }
 
-    private void connectBluetoothBlobo() {
-        //connect blobo via bluetooth
-        //Connect to bluetooth and display read data on tvDisplay
-        tvDisplay.setText("");
-        Intent serverIntent = new Intent(getApplicationContext(), DeviceListActivity.class);
-        startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE_INSECURE);
-    }
-
     private void setupChat() {
         Log.d(TAG, "setupChat()");
 
@@ -382,8 +382,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
                     switch (msg.arg1) {
                         case BluetoothChatService.STATE_CONNECTED:
                             String status = getString(R.string.title_connected_to) + " " + mConnectedDeviceName;
-                            long pattern[] = {0, 300, 200, 300, 0};
-                            vibrate(pattern);
+                            vibrate(300L);
                             setStatus(status);
 //                            mConversationArrayAdapter.clear();
                             break;
@@ -393,6 +392,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
                         case BluetoothChatService.STATE_LISTEN:
                         case BluetoothChatService.STATE_NONE:
                             setStatus(R.string.title_not_connected);
+                            tvDisplay.setText(R.string.no_pressure_value);
                             MainActivity.pressure = 0;
                             break;
                     }
@@ -583,15 +583,13 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
             public void run() {
                 //Toast.makeText(getApplicationContext(), getString(R.string.long_squeeze) + " triggered!", Toast.LENGTH_SHORT).show();
                 try {
+                    //wait for location update
                     while(currentLocation == null) {
-                        sleep(1000);
+                        sleep(500);
                     }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-
-                //get GPS location
-                //Check out http://www.androidhive.info/2012/07/android-gps-location-manager-tutorial/
 
                 long pattern[] = {0, 300, 200, 300, 200, 300, 0};
                 vibrate(pattern);
