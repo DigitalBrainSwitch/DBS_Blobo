@@ -1,8 +1,6 @@
-<RelativeLayout
-    android:layout_width="fill_parent"
-    android:layout_height="?android:attr/listPreferredItemHeight"
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:padding="6dip">
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
 
     <TextView
         android:layout_width="fill_parent"
@@ -11,5 +9,7 @@
         android:textSize="@dimen/textview_font_size"
         android:paddingTop="5dip"
         android:paddingBottom="5dip"
+        android:paddingLeft="15dip"
+        android:paddingRight="15dip"
         android:text="TEXT" />
 </RelativeLayout>

@@ -1,0 +1,53 @@
+<LinearLayout
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_weight="0.2">
+        <CalendarView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/cvDatePicker"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:layout_margin="10dp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:background="@color/dark_gray"
+        android:layout_height="4dip">
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_weight="0.8"
+        android:layout_margin="4dp" >
+
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="New Text"
+            android:id="@+id/tvCalendarDisplay"
+            android:textSize="@dimen/textview_font_size"
+            android:layout_margin="4dp" />
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="Select Date"
+            android:id="@+id/bCalendarSelect"
+            android:textSize="@dimen/textview_font_size"
+            android:layout_centerHorizontal="true" />
+    </LinearLayout>
+
+</LinearLayout>

@@ -1,9 +1,11 @@
 package uk.co.digitalbrainswitch.dbsblobodiary;
 
 import android.app.ListActivity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Typeface;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Activity;
 import android.os.Environment;
@@ -23,7 +25,6 @@ import java.util.List;
 public class MapListActivity extends ListActivity {
 
     Typeface font;
-
     AdapterView.OnItemClickListener itemListener;
 
     @Override
@@ -41,6 +42,7 @@ public class MapListActivity extends ListActivity {
                 String selectFileName = parent.getItemAtPosition(position).toString();
                 intent.putExtra(getString(R.string.intent_extra_selected_file_name), selectFileName);
                 intent.putExtra(getString(R.string.intent_extra_number_of_map_points), getString(R.string.multiple_map_points));
+
                 startActivity(intent);
                 MapListActivity.this.finish();
             }
@@ -64,8 +66,8 @@ public class MapListActivity extends ListActivity {
         File dataDir = new File(root, getString(R.string.stored_data_directory));
 
         ArrayList<String> fileNamesList = new ArrayList<String>();
-        for(File f : dataDir.listFiles()){
-            if(f.isFile()){
+        for (File f : dataDir.listFiles()) {
+            if (f.isFile()) {
                 fileNamesList.add(removeExtension(f.getName()));
             }
         }
@@ -107,29 +109,26 @@ public class MapListActivity extends ListActivity {
 
         private Context mContext;
         private int id;
-        private List<String> items ;
+        private List<String> items;
 
-        public CustomListAdapter(Context context, int textViewResourceId , List<String> list )
-        {
+        public CustomListAdapter(Context context, int textViewResourceId, List<String> list) {
             super(context, textViewResourceId, list);
             mContext = context;
             id = textViewResourceId;
-            items = list ;
+            items = list;
         }
 
         @Override
-        public View getView(int position, View v, ViewGroup parent)
-        {
-            View mView = v ;
-            if(mView == null){
-                LayoutInflater vi = (LayoutInflater)mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        public View getView(int position, View v, ViewGroup parent) {
+            View mView = v;
+            if (mView == null) {
+                LayoutInflater vi = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 mView = vi.inflate(id, null);
             }
 
             TextView text = (TextView) mView.findViewById(R.id.tvCustomMapListItem);
 
-            if(items.get(position) != null )
-            {
+            if (items.get(position) != null) {
                 text.setTypeface(font); //change font style
                 text.setText(items.get(position));
             }
@@ -137,5 +136,4 @@ public class MapListActivity extends ListActivity {
             return mView;
         }
     }
-    
 }

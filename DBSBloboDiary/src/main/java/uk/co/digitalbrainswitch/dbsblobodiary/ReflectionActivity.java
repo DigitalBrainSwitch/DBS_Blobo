@@ -38,12 +38,18 @@ public class ReflectionActivity extends Activity implements View.OnClickListener
         switch (v.getId()){
             case R.id.ibRead:
                 //Display previous diary entries
+
+                finish();
                 break;
             case R.id.ibWrite:
                 //Add a new diary entry
+
+                finish();
                 break;
         }
     }
+
+
 
 
 //    @Override
