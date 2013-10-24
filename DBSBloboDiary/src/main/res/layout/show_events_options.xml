@@ -1,7 +1,7 @@
 <LinearLayout
     android:orientation="vertical"
     android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="fill_parent"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <LinearLayout
@@ -14,19 +14,18 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="View Entries"
-            android:id="@+id/tvViewEntriesText"
+            android:text="Show Events by Timeline"
+            android:id="@+id/tvShowByTimeline"
             android:layout_gravity="center_horizontal"
             android:textSize="@dimen/textview_font_size"
             android:gravity="center" />
         <ImageButton
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/ibRead"
+            android:id="@+id/ibShowByTimeline"
             android:layout_gravity="center"
-            android:src="@drawable/read_200x200"
-            android:paddingBottom="10dp"
-            android:cropToPadding="false" />
+            android:src="@drawable/time_200x200"
+            android:paddingBottom="10dp" />
     </LinearLayout>
 
     <LinearLayout
@@ -45,8 +44,8 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Add an Entry"
-            android:id="@+id/tvAddEntryText"
+            android:text="Show Events by Map"
+            android:id="@+id/tvShowByMap"
             android:layout_gravity="center_horizontal"
             android:textSize="@dimen/textview_font_size"
             android:gravity="center" />
@@ -54,9 +53,9 @@
         <ImageButton
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/ibWrite"
+            android:id="@+id/ibShowByMap"
             android:layout_gravity="center"
-            android:src="@drawable/write_200x200"
+            android:src="@drawable/map_200x200"
             android:paddingBottom="10dp" />
     </LinearLayout>
 

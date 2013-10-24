@@ -44,7 +44,7 @@ public class MapListActivity extends ListActivity {
                 intent.putExtra(getString(R.string.intent_extra_number_of_map_points), getString(R.string.multiple_map_points));
 
                 startActivity(intent);
-                MapListActivity.this.finish();
+                //MapListActivity.this.finish();
             }
         };
 

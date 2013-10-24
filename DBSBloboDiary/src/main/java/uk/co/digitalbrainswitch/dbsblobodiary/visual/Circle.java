@@ -30,7 +30,7 @@ public class Circle extends SurfaceView implements SurfaceHolder.Callback {
         paintStroke.setStyle(Paint.Style.STROKE);
         paint.setColor(getResources().getColor(R.color.gray));
         paintStroke.setColor(getResources().getColor(R.color.dark_gray));
-        paintStroke.setStrokeWidth(30.0F);
+        paintStroke.setStrokeWidth(50.0F);
     }
 
     @Override
@@ -125,7 +125,7 @@ public class Circle extends SurfaceView implements SurfaceHolder.Callback {
         canvas.drawCircle(xPosition, yPosition, radius, paintStroke);
     }
 
-    private final int POS_OFFSET = 80;
+    private final int POS_OFFSET = 90;
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         radius = this.getWidth()/2 - POS_OFFSET;

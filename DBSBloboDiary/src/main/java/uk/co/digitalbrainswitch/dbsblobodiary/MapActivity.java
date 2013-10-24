@@ -86,7 +86,7 @@ public class MapActivity extends Activity implements GoogleMap.OnMarkerClickList
             return;
         }
 
-        //add markers onto map
+        //add location markers onto map
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
         for (TreeMap.Entry<Long, TimeLocation> entry : data.entrySet()) {
             TimeLocation tl = entry.getValue();
@@ -104,10 +104,15 @@ public class MapActivity extends Activity implements GoogleMap.OnMarkerClickList
         //move camera to show all markers
         LatLngBounds bounds = builder.build();
         final CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, 200);
+        final float defaultMaxZoomLevel = 15f;
+        final CameraUpdate zoom = CameraUpdateFactory.zoomTo(defaultMaxZoomLevel); //level 15 zoom
         googleMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
             @Override
             public void onCameraChange(CameraPosition cameraPosition) {
                 googleMap.moveCamera(cu);
+                //set default max zoom to defaultMaxZoomLevel (level 15)
+                if(googleMap.getCameraPosition().zoom > defaultMaxZoomLevel)
+                    googleMap.moveCamera(zoom);
                 googleMap.setOnCameraChangeListener(null);
             }
         });

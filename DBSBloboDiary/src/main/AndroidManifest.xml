@@ -83,7 +83,6 @@
         <activity
             android:name="uk.co.digitalbrainswitch.dbsblobodiary.ViewAnEventActivity"
             android:label="@string/title_activity_view_an_event" >
-
         </activity>
         <activity
             android:name="uk.co.digitalbrainswitch.dbsblobodiary.CalendarDatePickerActivity"
@@ -93,6 +92,11 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        <activity
+            android:name="uk.co.digitalbrainswitch.dbsblobodiary.ShowEventsActivity"
+            android:label="@string/title_activity_show_events"
+            android:theme="@android:style/Theme.Holo.Light.Dialog" >
         </activity>
     </application>
 

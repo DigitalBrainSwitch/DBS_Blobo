@@ -243,7 +243,8 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
 
     @Override
     public void onBackPressed() {
-        //Disable user pressing the back button on the main activity. This prevents the user disconnecting a connected Bluetooth connection.
+        //Disable the function for a user pressing the back button on the main activity.
+        //This prevents the app from disconnecting a connected Bluetooth connection.
     }
 
     @Override
@@ -265,12 +266,8 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
                 connectBluetoothBlobo();
                 break;
 
-            case (R.id.menu_show_time_data):
-                showTimeData();
-                break;
-
-            case (R.id.menu_show_map):
-                showMap();
+            case (R.id.menu_show_events):
+                showEvents();
                 break;
 
             case (R.id.menu_reflection):
@@ -299,13 +296,8 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
         startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE_INSECURE);
     }
 
-    private void showTimeData() {
-        Intent intent = new Intent(this, TimeDataListActivity.class);
-        startActivity(intent);
-    }
-
-    private void showMap() {
-        Intent intent = new Intent(this, MapListActivity.class);
+    private void showEvents(){
+        Intent intent = new Intent(this, ShowEventsActivity.class);
         startActivity(intent);
     }
 

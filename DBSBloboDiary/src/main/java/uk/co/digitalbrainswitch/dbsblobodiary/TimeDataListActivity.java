@@ -45,7 +45,7 @@ public class TimeDataListActivity extends ListActivity {
                 String selectFileName = parent.getItemAtPosition(position).toString();
                 intent.putExtra(getString(R.string.intent_extra_selected_file_name), selectFileName);
                 startActivity(intent);
-                TimeDataListActivity.this.finish();
+                //TimeDataListActivity.this.finish();
             }
         };
     }

@@ -9,29 +9,30 @@
         android:orientation="vertical"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:layout_weight="0.2">
+        android:layout_weight="0.45"
+        android:id="@+id/layoutCalendar">
+
         <CalendarView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:id="@+id/cvDatePicker"
             android:layout_alignParentLeft="true"
-            android:layout_alignParentTop="true"
-            android:layout_margin="10dp" />
+            android:layout_alignParentTop="true" />
     </LinearLayout>
 
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:background="@color/dark_gray"
-        android:layout_height="4dip">
-    </LinearLayout>
+        android:layout_height="4dip"></LinearLayout>
 
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:layout_weight="0.8"
-        android:layout_margin="4dp" >
+        android:layout_weight="0.55"
+        android:layout_margin="4dp"
+        android:id="@+id/layoutEntryList" >
 
         <TextView
             android:layout_width="fill_parent"
@@ -39,15 +40,15 @@
             android:text="New Text"
             android:id="@+id/tvCalendarDisplay"
             android:textSize="@dimen/textview_font_size"
-            android:layout_margin="4dp" />
+            android:layout_margin="1dp" />
 
-        <Button
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:text="Select Date"
-            android:id="@+id/bCalendarSelect"
-            android:textSize="@dimen/textview_font_size"
-            android:layout_centerHorizontal="true" />
+        <!--<Button-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="match_parent"-->
+            <!--android:text="Select Date"-->
+            <!--android:id="@+id/bCalendarSelect"-->
+            <!--android:textSize="@dimen/textview_font_size"-->
+            <!--android:layout_centerHorizontal="true" />-->
     </LinearLayout>
 
 </LinearLayout>
