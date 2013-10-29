@@ -1,5 +1,6 @@
 package uk.co.digitalbrainswitch.dbsblobodiary;
 
+import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.app.Activity;
@@ -38,8 +39,9 @@ public class ReflectionActivity extends Activity implements View.OnClickListener
         switch (v.getId()){
             case R.id.ibRead:
                 //Display previous diary entries
-
-                finish();
+                Intent intent = new Intent(this, CalendarDatePickerActivity.class);
+                startActivity(intent);
+                //finish();
                 break;
             case R.id.ibWrite:
                 //Add a new diary entry

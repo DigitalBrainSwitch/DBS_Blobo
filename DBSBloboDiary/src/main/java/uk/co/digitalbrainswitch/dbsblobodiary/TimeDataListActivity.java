@@ -23,6 +23,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import uk.co.digitalbrainswitch.dbsblobodiary.list_models.EventDateListModel;
+
 public class TimeDataListActivity extends ListActivity {
 
     Typeface font;
@@ -42,7 +44,7 @@ public class TimeDataListActivity extends ListActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long l) {
                 //Use intent to start visualisation activity
                 Intent intent = new Intent(TimeDataListActivity.this, ShowTimeDataActivity.class);
-                String selectFileName = parent.getItemAtPosition(position).toString();
+                String selectFileName = ((EventDateListModel) parent.getItemAtPosition(position)).getFileNameString();
                 intent.putExtra(getString(R.string.intent_extra_selected_file_name), selectFileName);
                 startActivity(intent);
                 //TimeDataListActivity.this.finish();
@@ -66,15 +68,22 @@ public class TimeDataListActivity extends ListActivity {
         File root = Environment.getExternalStorageDirectory();
         File dataDir = new File(root, getString(R.string.stored_data_directory));
 
-        ArrayList<String> fileNamesList = new ArrayList<String>();
+        ArrayList<EventDateListModel> fileNamesList = new ArrayList<EventDateListModel>();
         for(File f : dataDir.listFiles()){
             if(f.isFile()){
-                fileNamesList.add(removeExtension(f.getName()));
+                String fileName = f.getName();
+                String displayName = processFileNameForListDisplay(f.getName());
+                EventDateListModel item = new EventDateListModel(displayName, fileName);
+                fileNamesList.add(item);
             }
         }
         CustomListAdapter adapter = new CustomListAdapter(this, R.layout.time_data_list, fileNamesList);
 
         return adapter;
+    }
+
+    private static String processFileNameForListDisplay(String fileName){
+        return removeExtension(fileName).replaceAll("_", " ").replaceAll("-", "/");
     }
 
     //method for removing file extension from file name
@@ -110,9 +119,9 @@ public class TimeDataListActivity extends ListActivity {
 
         private Context mContext;
         private int id;
-        private List <String>items ;
+        private ArrayList<EventDateListModel> items ;
 
-        public CustomListAdapter(Context context, int textViewResourceId , List<String> list )
+        public CustomListAdapter(Context context, int textViewResourceId , ArrayList<EventDateListModel> list )
         {
             super(context, textViewResourceId, list);
             mContext = context;
@@ -134,7 +143,7 @@ public class TimeDataListActivity extends ListActivity {
             if(items.get(position) != null )
             {
                 text.setTypeface(font); //change font style
-                text.setText(items.get(position));
+                text.setText(items.get(position).getDateString());
             }
 
             return mView;

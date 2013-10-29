@@ -7,6 +7,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -18,6 +19,7 @@ import android.widget.TextView;
 
 import java.util.Set;
 
+import uk.co.digitalbrainswitch.dbsblobodiary.MyApplication;
 import uk.co.digitalbrainswitch.dbsblobodiary.R;
 
 

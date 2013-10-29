@@ -91,7 +91,7 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
         layout.addView(mChartView);
 
         if(data.size() == 0){
-            showAlertMessage("Error", "Error reading data from file: " + selectedFileName + ".txt");
+            showAlertMessage("Error", "Error reading data from file: " + selectedFileName);
             return;
         }
     }
@@ -99,7 +99,7 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
     private void readDataFromFile(String fileName) {
         File root = Environment.getExternalStorageDirectory();
         File storedDirectory = new File(root, getString(R.string.stored_data_directory));
-        File file = new File(storedDirectory, fileName + ".txt");
+        File file = new File(storedDirectory, fileName);
         try {
             FileInputStream inputStream = new FileInputStream(file);
 

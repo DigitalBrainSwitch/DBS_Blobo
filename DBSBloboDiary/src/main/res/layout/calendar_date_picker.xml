@@ -17,7 +17,9 @@
             android:layout_height="match_parent"
             android:id="@+id/cvDatePicker"
             android:layout_alignParentLeft="true"
-            android:layout_alignParentTop="true" />
+            android:layout_alignParentTop="true"
+            android:paddingLeft="5dp"
+            android:paddingRight="5dp"/>
     </LinearLayout>
 
     <LinearLayout
@@ -32,7 +34,7 @@
         android:layout_height="fill_parent"
         android:layout_weight="0.55"
         android:layout_margin="4dp"
-        android:id="@+id/layoutEntryList" >
+        android:id="@+id/layoutEntryList">
 
         <TextView
             android:layout_width="fill_parent"
@@ -40,15 +42,15 @@
             android:text="New Text"
             android:id="@+id/tvCalendarDisplay"
             android:textSize="@dimen/textview_font_size"
-            android:layout_margin="1dp" />
+            android:layout_margin="1dp"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp" />
 
-        <!--<Button-->
-            <!--android:layout_width="match_parent"-->
-            <!--android:layout_height="match_parent"-->
-            <!--android:text="Select Date"-->
-            <!--android:id="@+id/bCalendarSelect"-->
-            <!--android:textSize="@dimen/textview_font_size"-->
-            <!--android:layout_centerHorizontal="true" />-->
+        <ListView
+            android:id="@+id/lvDiaryEvents"
+            android:layout_height="match_parent"
+            android:layout_width="match_parent" />
+
     </LinearLayout>
 
 </LinearLayout>

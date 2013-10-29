@@ -34,8 +34,10 @@
     <string name="stored_diary_directory">/Download/diary</string>
 
     <!-- Text -->
-    <string name="text_about">        Digital Brain Switch (DBS) is a project funded by the Engineering and Physical Sciences Research Council (EPSRC), which brings together computer science and social science. It is a collaboration between Lancaster University; The Open University; Royal Holloway, University of London; and University of Kent. The project is led by Prof. Jon Whittle from the School of Computing &amp; Communications at Lancaster University.
-        \n\nEmail: DBS-Project@open.ac.uk</string>
+    <string name="text_about">
+        Digital Brain Switch (DBS) is a project funded by the Engineering and Physical Sciences Research Council (EPSRC), which brings together computer science and social science. It is a collaboration between Lancaster University; The Open University; Royal Holloway, University of London; and University of Kent. The project is led by Prof. Jon Whittle from the School of Computing &amp; Communications at Lancaster University.
+        \n\nEmail: DBS-Project@open.ac.uk
+    </string>
     <string name="text_version">0.1</string>
     <string name="action_settings">Settings</string>
 
@@ -78,11 +80,26 @@
     <string name="intent_extra_selected_file_name">INTENT_EXTRA_SELECTED_FILE_NAME</string>
     <string name="intent_extra_time_location">INTENT_EXTRA_TIME_LOCATION</string>
     <string name="intent_extra_number_of_map_points">INTENT_EXTRA_NUMBER_OF_MAP_POINTS</string>
->                <string name="multiple_map_points">MULTIPLE_MAP_POINTS</string>
+    <string name="multiple_map_points">MULTIPLE_MAP_POINTS</string>
     <string name="single_map_point">SINGLE_MAP_POINT</string>
     <string name="title_activity_reflection">DBS Diary</string>
     <string name="title_activity_view_an_event">View An Event Activity</string>
     <string name="title_activity_calendar_date_picker">Calendar Date Picker</string>
     <string name="title_activity_show_events">Show Events</string>
+    <string name="title_activity_add_diary_entry">Diary Entry</string>
+
+    <!--Add Diary Entry-->
+    <string name="add_diary_date_string">Date:</string>
+    <string name="add_diary_time_string">Time:</string>
+    <string name="add_diary_location_string">Address:</string>
+
+    <string name="diary_data_key_date">DIARY_ENTRY_DATE</string>
+    <string name="diary_data_key_time">DIARY_ENTRY_TIME</string>
+    <string name="diary_data_key_location">DIARY_ENTRY_LOCATION</string>
+    <string name="diary_data_key_content">DIARY_ENTRY_CONTENT</string>
+    <string name="diary_data_key_recorded_time">DIARY_ENTRY_RECORDED_TIME</string>
+
+    <string name="diary_button_add_string">Add Diary Entry</string>
+    <string name="diary_button_update_string">Update Diary Entry</string>
 
 </resources>

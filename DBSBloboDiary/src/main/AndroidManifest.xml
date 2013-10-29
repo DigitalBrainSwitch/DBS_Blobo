@@ -87,16 +87,20 @@
         <activity
             android:name="uk.co.digitalbrainswitch.dbsblobodiary.CalendarDatePickerActivity"
             android:label="@string/title_activity_calendar_date_picker" >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
         <activity
             android:name="uk.co.digitalbrainswitch.dbsblobodiary.ShowEventsActivity"
             android:label="@string/title_activity_show_events"
             android:theme="@android:style/Theme.Holo.Light.Dialog" >
+        </activity>
+        <activity
+            android:name="uk.co.digitalbrainswitch.dbsblobodiary.AddDiaryEntryActivity"
+            android:label="@string/title_activity_add_diary_entry" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
     </application>
 

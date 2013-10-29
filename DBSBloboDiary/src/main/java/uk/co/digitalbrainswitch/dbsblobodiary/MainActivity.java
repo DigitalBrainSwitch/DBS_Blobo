@@ -547,11 +547,8 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
         File folder = new File(root + "/Download/data/");
         if (!folder.exists()) {
             boolean success = folder.mkdirs();
-            if (success) {
-                //System.out.println("SUCCESS");
-            } else {
+            if (!success) {
                 showAlertMessage("Error", "Unable to create " + folder.getAbsolutePath());
-                //System.out.println("FAILED");
             }
         }
 
@@ -571,7 +568,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
         } catch (IOException e) {
             Log.e("TAG", "Could not write file " + e.getMessage());
         }
-        //System.out.println("################################################");
+
         if (validEvent(currentTimeInMillies, file, 60000L)) { //60000 millisec = 1 min
             try {
                 if (root.canWrite()) {

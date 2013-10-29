@@ -82,7 +82,7 @@ public class MapActivity extends Activity implements GoogleMap.OnMarkerClickList
         readDataFromFile(selectedFileName);
 
         if(data.size() == 0){
-            showAlertMessage("Error", "Error reading data from file: " + selectedFileName + ".txt");
+            showAlertMessage("Error", "Error reading data from file: " + selectedFileName);
             return;
         }
 
@@ -121,7 +121,7 @@ public class MapActivity extends Activity implements GoogleMap.OnMarkerClickList
     private void readDataFromFile(String fileName) {
         File root = Environment.getExternalStorageDirectory();
         File storedDirectory = new File(root, getString(R.string.stored_data_directory));
-        File file = new File(storedDirectory, fileName + ".txt");
+        File file = new File(storedDirectory, fileName);
         try {
             FileInputStream inputStream = new FileInputStream(file);
 

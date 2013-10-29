@@ -1,0 +1,122 @@
+<LinearLayout
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp"
+            android:paddingRight="4dp"
+            android:paddingLeft="4dp">
+
+            <TextView
+                android:layout_width="75dp"
+                android:layout_height="wrap_content"
+                android:text="@string/add_diary_date_string"
+                android:id="@+id/tvDiaryDateLabel"
+                android:textSize="@dimen/textview_font_size" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="201X-XX-XX"
+                android:id="@+id/tvDiaryDate"
+                android:layout_gravity="left|center_vertical"
+                android:textSize="@dimen/textview_font_size"
+                android:layout_weight="1" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp"
+            android:paddingRight="4dp"
+            android:paddingLeft="4dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="75dp"
+                android:layout_height="wrap_content"
+                android:text="@string/add_diary_time_string"
+                android:id="@+id/tvDiaryTimeLabel"
+                android:textSize="@dimen/textview_font_size" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="XX:XX:XX"
+                android:id="@+id/tvDiaryTime"
+                android:layout_gravity="left|center_vertical"
+                android:textSize="@dimen/textview_font_size"
+                android:layout_weight="1" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp"
+            android:paddingRight="4dp"
+            android:paddingLeft="4dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="75dp"
+                android:layout_height="wrap_content"
+                android:text="@string/add_diary_location_string"
+                android:id="@+id/tvDiaryLocationLabel"
+                android:textSize="@dimen/textview_font_size" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="XXXX XXXX XXXX"
+                android:id="@+id/tvDiaryLocation"
+                android:layout_gravity="left|center_vertical"
+                android:textSize="@dimen/textview_font_size"
+                android:layout_weight="1" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:background="@color/dark_gray"
+        android:layout_height="4dip"></LinearLayout>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent">
+
+        <EditText
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:id="@+id/etDiaryText"
+            android:layout_weight="0.15"
+            android:layout_gravity="center_vertical|left"
+            android:gravity="top"
+            android:textSize="@dimen/textview_font_size"
+            android:hint="Enter Diary Here" />
+
+        <Button
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:id="@+id/bDiaryAdd"
+            android:layout_weight="0.75"
+            android:textSize="@dimen/textview_font_size" />
+    </LinearLayout>
+</LinearLayout>
