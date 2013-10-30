@@ -21,11 +21,14 @@ import android.os.Message;
 import android.os.SystemClock;
 import android.os.Vibrator;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -135,6 +138,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
         setContentView(R.layout.activity_main);
 
         font = ((MyApplication) getApplication()).getCustomTypeface();
+
         this.initialise();
 
         //Add a circle to layout
@@ -475,16 +479,19 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
 
 
     private void showNotification(String title, String body){
-        //Intent intent = new Intent(this, MainActivity.class);
-        //PendingIntent pi = PendingIntent.getActivity(this, 0, intent, 0);
+        Intent intent = new Intent(this, MainActivity.class);
+        //set intent filter to be the same as android's luancher, so clicking on the notification resumes the paused state of the app
+        //http://stackoverflow.com/questions/5502427/resume-application-and-stack-from-notification
+        intent.setAction(Intent.ACTION_MAIN);
+        intent.addCategory(Intent.CATEGORY_LAUNCHER);
+        PendingIntent pi = PendingIntent.getActivity(this, 0, intent, 0);
 
         NotificationCompat.Builder n = new NotificationCompat.Builder(this);
-        //n.setContentIntent(pi);
+        n.setContentIntent(pi);
         n.setSmallIcon(R.drawable.dbs_icon);
         n.setContentTitle(title);
         n.setContentText(body);
         n.setDefaults(Notification.DEFAULT_ALL);
-
 
         nm.notify(uniqueID, n.build());
     }
@@ -669,10 +676,26 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
     //Method for displaying a popup alert dialog
     private void showAlertMessage(String title, String Message) {
         AlertDialog.Builder popupBuilder = new AlertDialog.Builder(this);
-        popupBuilder.setTitle(title);
+        //popupBuilder.setTitle(title);
+
+        TextView tvTitle = new TextView(this);
+        tvTitle.setText(title);
+        tvTitle.setTypeface(font);
+        tvTitle.setTextColor(getResources().getColor(R.color.dbs_blue));
+        tvTitle.setPadding(30,20,30,20);
+        tvTitle.setTextSize(25);
+        popupBuilder.setCustomTitle(tvTitle);
+
         popupBuilder.setMessage(Message);
         popupBuilder.setPositiveButton("OK", null);
-        popupBuilder.show();
+        AlertDialog ad = popupBuilder.show();
+        Button b = (Button) ad.findViewById(android.R.id.button1);
+        b.setTypeface(font);
+        b.setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen.textview_font_size));
+
+        TextView tv = (TextView) ad.findViewById(android.R.id.message);
+        tv.setTypeface(font);
+        tv.setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen.textview_font_size));
     }
 
     @Override

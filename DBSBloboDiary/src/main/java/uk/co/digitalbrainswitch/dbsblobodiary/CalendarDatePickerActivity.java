@@ -18,6 +18,8 @@ import android.widget.Toast;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.GregorianCalendar;
 
 import uk.co.digitalbrainswitch.dbsblobodiary.list_models.CalendarListModel;
@@ -47,11 +49,15 @@ public class CalendarDatePickerActivity extends Activity implements CalendarView
         cal.setFocusedMonthDateColor(Color.BLACK);
         cal.setUnfocusedMonthDateColor(getResources().getColor(R.color.light_gray));
         cal.setOnDateChangeListener(this);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
 
         //Change to a day before then change it back to current date. This forces the calendar to call onSelectedDayChange
         cal.setDate(System.currentTimeMillis() - 86400001L);
         cal.setDate(System.currentTimeMillis());
-
     }
 
     @Override
@@ -89,8 +95,16 @@ public class CalendarDatePickerActivity extends Activity implements CalendarView
             String dirPath = (path.charAt(path.length() - 1) == '/') ? path.substring(0, path.length() - 1) : path;
             File directory = new File(root, dirPath + "/" + directoryName);
 
+            File[] files = directory.listFiles();
+            //sort by file names in ascending order
+            Arrays.sort(files, new Comparator<File>() {
+                @Override
+                public int compare(File lhs, File rhs) {
+                    return lhs.getName().compareTo(rhs.getName());
+                }
+            });
             int count = 0;
-            for (File f : directory.listFiles()) {
+            for (File f : files) {
                 if (f.isFile() && hasExtension(f.getName(), "txt")) {
                     count++;
                     String fileNameWithoutExtention = removeExtension(f.getName());

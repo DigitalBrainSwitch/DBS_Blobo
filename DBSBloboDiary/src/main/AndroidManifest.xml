@@ -34,7 +34,11 @@
         <activity
             android:name="uk.co.digitalbrainswitch.dbsblobodiary.MainActivity"
             android:label="@string/app_name" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
 
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
         <activity
             android:name="uk.co.digitalbrainswitch.dbsblobodiary.ShowTimeDataActivity"
@@ -96,11 +100,7 @@
         <activity
             android:name="uk.co.digitalbrainswitch.dbsblobodiary.AddDiaryEntryActivity"
             android:label="@string/title_activity_add_diary_entry" >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
     </application>
 

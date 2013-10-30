@@ -82,11 +82,22 @@
     <string name="intent_extra_number_of_map_points">INTENT_EXTRA_NUMBER_OF_MAP_POINTS</string>
     <string name="multiple_map_points">MULTIPLE_MAP_POINTS</string>
     <string name="single_map_point">SINGLE_MAP_POINT</string>
+
+    <string name="intent_extra_diary_entry_date">INTENT_EXTRA_DIARY_DATE</string>
+    <string name="intent_extra_diary_entry_time">INTENT_EXTRA_DIARY_TIME</string>
+    <string name="intent_extra_diary_entry_location">INTENT_EXTRA_DIARY_LOCATION</string>
+    <string name="intent_extra_diary_entry_content">INTENT_EXTRA_DIARY_CONTENT</string>
+    <string name="intent_extra_diary_entry_add_or_update">INTENT_EXTRA_DIARY_ADD_OR_UPDATE</string>
+
     <string name="title_activity_reflection">DBS Diary</string>
     <string name="title_activity_view_an_event">View An Event Activity</string>
     <string name="title_activity_calendar_date_picker">Calendar Date Picker</string>
     <string name="title_activity_show_events">Show Events</string>
     <string name="title_activity_add_diary_entry">Diary Entry</string>
+
+    <!--Reflection Activity-->
+    <string name="reflection_activity_view_entries">View Entries</string>
+    <string name="reflection_activity_add_entry">Add a General Entry</string>
 
     <!--Add Diary Entry-->
     <string name="add_diary_date_string">Date:</string>
@@ -96,10 +107,15 @@
     <string name="diary_data_key_date">DIARY_ENTRY_DATE</string>
     <string name="diary_data_key_time">DIARY_ENTRY_TIME</string>
     <string name="diary_data_key_location">DIARY_ENTRY_LOCATION</string>
+    <string name="diary_data_key_location_latitude">DIARY_ENTRY_LOCATION_LAT</string>
+    <string name="diary_data_key_location_longitude">DIARY_ENTRY_LOCATION_LONG</string>
     <string name="diary_data_key_content">DIARY_ENTRY_CONTENT</string>
     <string name="diary_data_key_recorded_time">DIARY_ENTRY_RECORDED_TIME</string>
 
     <string name="diary_button_add_string">Add Diary Entry</string>
     <string name="diary_button_update_string">Update Diary Entry</string>
+
+    <string name="diary_empty_alert_title">Cannot Save Diary Entry</string>
+    <string name="diary_empty_alert_message">Diary content is empty. Please enter content.</string>
 
 </resources>

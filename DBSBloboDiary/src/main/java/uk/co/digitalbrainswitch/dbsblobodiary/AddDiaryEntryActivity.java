@@ -3,11 +3,15 @@ package uk.co.digitalbrainswitch.dbsblobodiary;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.ScaleDrawable;
 import android.os.Bundle;
 import android.app.Activity;
+import android.os.Environment;
+import android.util.Log;
+import android.util.TypedValue;
 import android.util.Xml;
 import android.view.Menu;
 import android.view.View;
@@ -20,6 +24,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.xmlpull.v1.XmlSerializer;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringWriter;
 
@@ -30,7 +37,7 @@ public class AddDiaryEntryActivity extends Activity implements View.OnClickListe
     EditText etDiaryText;
     Button bDiaryAdd;
 
-    boolean addFunction = true; //true add, false for update
+    boolean isAddFunction = true; //true add, false for update
 
     private String _diaryDate = "";
     private String _diaryTime = "";
@@ -43,6 +50,30 @@ public class AddDiaryEntryActivity extends Activity implements View.OnClickListe
         setContentView(R.layout.add_diary_entry);
         font = ((MyApplication) getApplication()).getCustomTypeface();
         this.initialise();
+        this.getIntentExtras();
+        this.initialiseAddButton();
+    }
+
+    private void getIntentExtras() {
+        Bundle bundle = getIntent().getExtras();
+        _diaryDate = bundle.getString(getString(R.string.intent_extra_diary_entry_date));
+        _diaryTime = bundle.getString(getString(R.string.intent_extra_diary_entry_time));
+        _diaryLocation = bundle.getString(getString(R.string.intent_extra_diary_entry_location));
+        _diaryContent = bundle.getString(getString(R.string.intent_extra_diary_entry_content));
+        isAddFunction = bundle.getBoolean(getString(R.string.intent_extra_diary_entry_add_or_update));
+        etDiaryText.setText(_diaryContent);
+
+        tvDiaryDate.setText(processDateForDisplay(_diaryDate));
+        tvDiaryTime.setText(processTimeForDisplay(_diaryTime));
+        tvDiaryLocation.setText(_diaryLocation);
+    }
+
+    private String processDateForDisplay(String dateString) {
+        return dateString.replaceAll("_", "/");
+    }
+
+    private String processTimeForDisplay(String timeString) {
+        return timeString.replaceAll("\\.", ":");
     }
 
     private void initialise() {
@@ -57,18 +88,19 @@ public class AddDiaryEntryActivity extends Activity implements View.OnClickListe
         tvDiaryLocation.setTypeface(font);
         etDiaryText = (EditText) findViewById(R.id.etDiaryText);
         etDiaryText.setTypeface(font);
+    }
+
+    private void initialiseAddButton() {
         bDiaryAdd = (Button) findViewById(R.id.bDiaryAdd);
         bDiaryAdd.setTypeface(font);
         bDiaryAdd.setOnClickListener(this);
         bDiaryAdd.setOnLongClickListener(this);
-        Drawable drawable = getResources().getDrawable((addFunction)? R.drawable.plus : R.drawable.update);
+        Drawable drawable = getResources().getDrawable((isAddFunction) ? R.drawable.plus : R.drawable.update);
         float scale = 0.8f;
         drawable.setBounds(0, 0, (int) (drawable.getIntrinsicWidth() * scale), (int) (drawable.getIntrinsicHeight() * scale));
-        bDiaryAdd.setText(getString((addFunction) ? R.string.diary_button_add_string : R.string.diary_button_update_string));
+        bDiaryAdd.setText(getString((isAddFunction) ? R.string.diary_button_add_string : R.string.diary_button_update_string));
         bDiaryAdd.setCompoundDrawables(null, drawable, null, null);
-
     }
-
 
     private String writeUsingJSON(String diaryDate, String diaryTime, String diaryLocation, String diaryContent) throws JSONException {
         JSONObject jsonObject = new JSONObject();
@@ -104,34 +136,46 @@ public class AddDiaryEntryActivity extends Activity implements View.OnClickListe
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.bDiaryAdd:
-                //if(confirmEntry(getApplicationContext())){
-                    safeDiaryEntry();
-                //}
+                if (!etDiaryText.getText().toString().matches("")) { //check if diary is empty
+                    confirmEntry(getApplicationContext());
+                } else {
+                    showAlertMessage(getString(R.string.diary_empty_alert_title), getString(R.string.diary_empty_alert_message));
+                }
                 break;
             default:
                 break;
         }
     }
 
-    private static boolean answer;
-    private boolean confirmEntry(Context context) {
-        AlertDialog dialog = new AlertDialog.Builder(context).create();
-        dialog.setTitle("Confirmation");
-        dialog.setMessage("Choose Yes or No");
-        dialog.setCancelable(false);
-        dialog.setButton(DialogInterface.BUTTON_POSITIVE, "Yes", new DialogInterface.OnClickListener() {
+    //confirm whether the user wants to save diary entry
+    private void confirmEntry(Context context) {
+        AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+        //dialog.setTitle("Confirmation");
+        dialog.setMessage("Save Entry to DBS Diary?");
+        dialog.setCancelable(true);
+        dialog.setPositiveButton("Save Entry", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int buttonId) {
-                answer = true;
+                saveDiaryEntry();
+                finish();
             }
         });
-        dialog.setButton(DialogInterface.BUTTON_NEGATIVE, "No", new DialogInterface.OnClickListener() {
+        dialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int buttonId) {
-                answer = false;
+                //do nothing
             }
         });
         dialog.setIcon(android.R.drawable.ic_dialog_alert);
-        dialog.show();
-        return answer;
+        AlertDialog ad = dialog.show();
+        TextView tv = (TextView) ad.findViewById(android.R.id.message);
+        tv.setTypeface(font);
+        tv.setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen.textview_font_size));
+        Button b = (Button) ad.findViewById(android.R.id.button1);
+        b.setTypeface(font);
+        b.setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen.textview_font_size));
+        b.setTextColor(getResources().getColor(R.color.dbs_blue));
+        b = (Button) ad.findViewById(android.R.id.button2);
+        b.setTypeface(font);
+        b.setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen.textview_font_size));
     }
 
 
@@ -140,7 +184,12 @@ public class AddDiaryEntryActivity extends Activity implements View.OnClickListe
     public boolean onLongClick(View v) {
         switch (v.getId()) {
             case R.id.bDiaryAdd:
-                safeDiaryEntry();
+                if (!etDiaryText.getText().toString().matches("")) { //check if diary is empty
+                    saveDiaryEntry();
+                    finish();
+                } else {
+                    showAlertMessage(getString(R.string.diary_empty_alert_title), getString(R.string.diary_empty_alert_message));
+                }
                 break;
             default:
                 break;
@@ -148,28 +197,80 @@ public class AddDiaryEntryActivity extends Activity implements View.OnClickListe
         return true;
     }
 
-    private void safeDiaryEntry(){
-        if (!etDiaryText.getText().toString().matches("")) { //check if diary is empty
-
-            try {
-                Toast.makeText(getApplicationContext(),
-                        writeUsingJSON(tvDiaryDate.getText().toString(), tvDiaryTime.getText().toString(), tvDiaryLocation.getText().toString(), etDiaryText.getText().toString()),
-                        Toast.LENGTH_LONG).show();
-            } catch (JSONException e) {
-                e.printStackTrace();
+    private void saveDiaryEntry() {
+        File root = Environment.getExternalStorageDirectory();
+        File diaryDirectory = new File(root + getString(R.string.stored_diary_directory) + "/" + _diaryDate);
+        if (!diaryDirectory.exists()) {
+            boolean success = diaryDirectory.mkdirs();
+            if (!success) {
+                showAlertMessage("Error", "Unable to create " + diaryDirectory.getAbsolutePath());
             }
-        } else {
-            showAlertMessage("Diary is empty", "Please enter diary content.");
         }
+
+        File file = new File(diaryDirectory, _diaryDate + "-" + _diaryTime + ".txt");
+        try {
+            if (!file.exists()) {
+                boolean success = file.createNewFile();
+                if (success) {
+                    //System.out.println("SUCCESS");
+                } else {
+                    showAlertMessage("Error", "Unable to create " + file.getAbsolutePath());
+                    //System.out.println("FAILED");
+                }
+            }
+        } catch (IOException e) {
+            Log.e("TAG", "Could not write file " + e.getMessage());
+        }
+
+        try {
+            if (root.canWrite()) {
+                FileWriter filewriter = new FileWriter(file, false);
+                BufferedWriter out = new BufferedWriter(filewriter);
+                out.write(writeUsingJSON(tvDiaryDate.getText().toString(), tvDiaryTime.getText().toString(), tvDiaryLocation.getText().toString(), etDiaryText.getText().toString()));
+                out.close();
+                Toast.makeText(getApplicationContext(), "Diary Entry Saved", Toast.LENGTH_SHORT).show();
+            }
+        } catch (IOException e) {
+            Log.e("TAG", "Could not write file " + e.getMessage());
+        } catch (JSONException e) {
+            Log.e("TAG", "Could not write file " + e.getMessage());
+        }
+
+
+//        try {
+//            Toast.makeText(getApplicationContext(),
+//                    writeUsingJSON(tvDiaryDate.getText().toString(), tvDiaryTime.getText().toString(), tvDiaryLocation.getText().toString(), etDiaryText.getText().toString()),
+//                    Toast.LENGTH_LONG).show();
+//            finish();
+//        } catch (JSONException e) {
+//            e.printStackTrace();
+//        }
     }
 
     //Method for displaying a popup alert dialog
     private void showAlertMessage(String title, String Message) {
         AlertDialog.Builder popupBuilder = new AlertDialog.Builder(this);
-        popupBuilder.setTitle(title);
+        //popupBuilder.setTitle(title);
+
+        TextView tvTitle = new TextView(this);
+        tvTitle.setText(title);
+        tvTitle.setTypeface(font);
+        tvTitle.setTextColor(getResources().getColor(R.color.dbs_blue));
+        tvTitle.setPadding(30,20,30,20);
+        tvTitle.setTextSize(25);
+        popupBuilder.setCustomTitle(tvTitle);
+
         popupBuilder.setMessage(Message);
         popupBuilder.setPositiveButton("OK", null);
-        popupBuilder.show();
+        //popupBuilder.show();
+        AlertDialog ad = popupBuilder.show();
+        TextView tvMsg = (TextView) ad.findViewById(android.R.id.message);
+        tvMsg.setTypeface(font);
+        tvMsg.setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen.textview_font_size));
+        Button b = (Button) ad.findViewById(android.R.id.button1);
+        b.setTypeface(font);
+        b.setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen.textview_font_size));
+
     }
 
 //    @Override
