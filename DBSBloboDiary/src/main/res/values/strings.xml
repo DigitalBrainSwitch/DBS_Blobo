@@ -33,12 +33,15 @@
     <string name="stored_data_directory">/Download/data</string>
     <string name="stored_diary_directory">/Download/diary</string>
 
-    <!-- Text -->
+    <!-- About Text -->
     <string name="text_about">
         Digital Brain Switch (DBS) is a project funded by the Engineering and Physical Sciences Research Council (EPSRC), which brings together computer science and social science. It is a collaboration between Lancaster University; The Open University; Royal Holloway, University of London; and University of Kent. The project is led by Prof. Jon Whittle from the School of Computing &amp; Communications at Lancaster University.
         \n\nEmail: DBS-Project@open.ac.uk
     </string>
     <string name="text_version">0.1</string>
+
+    <!-- Settings -->
+    <string name="settings_error_title">Settings Error</string>
     <string name="action_settings">Settings</string>
 
     <!-- BluetoothChat -->
@@ -88,6 +91,10 @@
     <string name="intent_extra_diary_entry_location">INTENT_EXTRA_DIARY_LOCATION</string>
     <string name="intent_extra_diary_entry_content">INTENT_EXTRA_DIARY_CONTENT</string>
     <string name="intent_extra_diary_entry_add_or_update">INTENT_EXTRA_DIARY_ADD_OR_UPDATE</string>
+    <string name="intent_extra_diary_entry_location_latitude">INTENT_EXTRA_DIARY_LOCATION_LATITUDE</string>
+    <string name="intent_extra_diary_entry_location_longitude">INTENT_EXTRA_DIARY_LOCATION_LONGITUDE</string>
+    <string name="intent_extra_diary_entry_created_time">INTENT_EXTRA_DIARY_CREATED_TIME</string>
+
 
     <string name="title_activity_reflection">DBS Diary</string>
     <string name="title_activity_view_an_event">View An Event Activity</string>
@@ -110,12 +117,16 @@
     <string name="diary_data_key_location_latitude">DIARY_ENTRY_LOCATION_LAT</string>
     <string name="diary_data_key_location_longitude">DIARY_ENTRY_LOCATION_LONG</string>
     <string name="diary_data_key_content">DIARY_ENTRY_CONTENT</string>
-    <string name="diary_data_key_recorded_time">DIARY_ENTRY_RECORDED_TIME</string>
+    <string name="diary_data_key_created_time">DIARY_ENTRY_CREATED_TIME</string>
+    <string name="diary_data_key_last_updated_time">DIARY_ENTRY_LAST_UPDATED_TIME</string>
 
     <string name="diary_button_add_string">Add Diary Entry</string>
     <string name="diary_button_update_string">Update Diary Entry</string>
 
     <string name="diary_empty_alert_title">Cannot Save Diary Entry</string>
     <string name="diary_empty_alert_message">Diary content is empty. Please enter content.</string>
+    <string name="diary_entry_empty_location_general_entry">General Entry - No Event Location.</string>
+    <string name="diary_entry_empty_latitude">NO_LATITUDE</string>
+    <string name="diary_entry_empty_longitude">NO_LONGITUDE</string>
 
 </resources>

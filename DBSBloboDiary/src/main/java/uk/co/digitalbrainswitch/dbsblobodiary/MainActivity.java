@@ -175,6 +175,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
         mLocationRequest.setFastestInterval(FAST_INTERVAL_CEILING_IN_MILLISECONDS);
         //Create a new location client
         mLocationClient = new LocationClient(this, this, this);
+
     }
 
     @Override

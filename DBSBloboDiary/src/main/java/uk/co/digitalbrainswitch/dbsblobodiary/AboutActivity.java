@@ -33,6 +33,9 @@ public class AboutActivity extends Activity {
         txt = (TextView) findViewById(R.id.tvAboutVersion);
         txt.setTypeface(font);
         txt.setText("Version: " + getString(R.string.text_version));
+
+        TextView titleBar = (TextView) getWindow().findViewById(android.R.id.title);
+        titleBar.setTypeface(font);
     }
 
 

@@ -43,6 +43,9 @@ public class AddDiaryEntryActivity extends Activity implements View.OnClickListe
     private String _diaryTime = "";
     private String _diaryLocation = "";
     private String _diaryContent = "";
+    private String _diaryLatitude = "";
+    private String _diaryLongitude = "";
+    private String _diaryCreatedtime = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +65,9 @@ public class AddDiaryEntryActivity extends Activity implements View.OnClickListe
         _diaryContent = bundle.getString(getString(R.string.intent_extra_diary_entry_content));
         isAddFunction = bundle.getBoolean(getString(R.string.intent_extra_diary_entry_add_or_update));
         etDiaryText.setText(_diaryContent);
+        _diaryLatitude = bundle.getString(getString(R.string.intent_extra_diary_entry_location_latitude));
+        _diaryLongitude = bundle.getString(getString(R.string.intent_extra_diary_entry_location_longitude));
+        _diaryCreatedtime = bundle.getString(getString(R.string.intent_extra_diary_entry_created_time));
 
         tvDiaryDate.setText(processDateForDisplay(_diaryDate));
         tvDiaryTime.setText(processTimeForDisplay(_diaryTime));
@@ -86,6 +92,9 @@ public class AddDiaryEntryActivity extends Activity implements View.OnClickListe
         tvDiaryTime.setTypeface(font);
         tvDiaryLocation = (TextView) findViewById(R.id.tvDiaryLocation);
         tvDiaryLocation.setTypeface(font);
+        tvDiaryLocation.setSelected(false);
+        tvDiaryLocation.setOnClickListener(this);
+        tvDiaryLocation.setOnLongClickListener(this);
         etDiaryText = (EditText) findViewById(R.id.etDiaryText);
         etDiaryText.setTypeface(font);
     }
@@ -102,14 +111,19 @@ public class AddDiaryEntryActivity extends Activity implements View.OnClickListe
         bDiaryAdd.setCompoundDrawables(null, drawable, null, null);
     }
 
-    private String writeUsingJSON(String diaryDate, String diaryTime, String diaryLocation, String diaryContent) throws JSONException {
+    private String writeUsingJSON(String diaryDate, String diaryTime, String diaryLocation, String diaryContent, String createdTime, String diaryLatitude, String diaryLongitude) throws JSONException {
         JSONObject jsonObject = new JSONObject();
 
         jsonObject.put(getString(R.string.diary_data_key_date), diaryDate);
         jsonObject.put(getString(R.string.diary_data_key_time), diaryTime);
         jsonObject.put(getString(R.string.diary_data_key_location), diaryLocation);
         jsonObject.put(getString(R.string.diary_data_key_content), diaryContent);
-        jsonObject.put(getString(R.string.diary_data_key_recorded_time), System.currentTimeMillis());
+        long currentTime = System.currentTimeMillis();
+        jsonObject.put(getString(R.string.diary_data_key_last_updated_time), currentTime);
+        jsonObject.put(getString(R.string.diary_data_key_created_time), (isAddFunction) ? currentTime : createdTime);
+
+        jsonObject.put(getString(R.string.diary_data_key_location_latitude), diaryLatitude);
+        jsonObject.put(getString(R.string.diary_data_key_location_longitude), diaryLongitude);
 
         return jsonObject.toString();
     }
@@ -141,6 +155,13 @@ public class AddDiaryEntryActivity extends Activity implements View.OnClickListe
                 } else {
                     showAlertMessage(getString(R.string.diary_empty_alert_title), getString(R.string.diary_empty_alert_message));
                 }
+                break;
+            case R.id.tvDiaryLocation:
+                
+                //TO DO
+                //Open location in MapActivity
+
+                Toast.makeText(getApplicationContext(), _diaryLatitude + "," + _diaryLongitude, Toast.LENGTH_LONG).show();
                 break;
             default:
                 break;
@@ -191,6 +212,9 @@ public class AddDiaryEntryActivity extends Activity implements View.OnClickListe
                     showAlertMessage(getString(R.string.diary_empty_alert_title), getString(R.string.diary_empty_alert_message));
                 }
                 break;
+            case R.id.tvDiaryLocation:
+                showAlertMessage(getString(R.string.add_diary_location_string), tvDiaryLocation.getText().toString());
+                break;
             default:
                 break;
         }
@@ -223,10 +247,10 @@ public class AddDiaryEntryActivity extends Activity implements View.OnClickListe
         }
 
         try {
-            if (root.canWrite()) {
+            if (file.canWrite()) {
                 FileWriter filewriter = new FileWriter(file, false);
                 BufferedWriter out = new BufferedWriter(filewriter);
-                out.write(writeUsingJSON(tvDiaryDate.getText().toString(), tvDiaryTime.getText().toString(), tvDiaryLocation.getText().toString(), etDiaryText.getText().toString()));
+                out.write(writeUsingJSON(tvDiaryDate.getText().toString(), tvDiaryTime.getText().toString(), tvDiaryLocation.getText().toString(), etDiaryText.getText().toString(), _diaryCreatedtime, _diaryLatitude, _diaryLongitude));
                 out.close();
                 Toast.makeText(getApplicationContext(), "Diary Entry Saved", Toast.LENGTH_SHORT).show();
             }
@@ -256,7 +280,7 @@ public class AddDiaryEntryActivity extends Activity implements View.OnClickListe
         tvTitle.setText(title);
         tvTitle.setTypeface(font);
         tvTitle.setTextColor(getResources().getColor(R.color.dbs_blue));
-        tvTitle.setPadding(30,20,30,20);
+        tvTitle.setPadding(30, 20, 30, 20);
         tvTitle.setTextSize(25);
         popupBuilder.setCustomTitle(tvTitle);
 

@@ -7,6 +7,7 @@ import android.content.res.Resources;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.app.Activity;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.View;
@@ -18,6 +19,8 @@ import static android.preference.PreferenceManager.getDefaultSharedPreferences;
 
 public class SettingsActivity extends Activity implements View.OnClickListener {
 
+    Typeface font;
+
     EditText etSettingsMinimum, etSettingsMaximum, etSettingsThreshold, etSettingsLongSqueezeDuration;
     Button bSettingsSave;
     SharedPreferences sharedPref;
@@ -27,6 +30,7 @@ public class SettingsActivity extends Activity implements View.OnClickListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.settings);
+        font = ((MyApplication) getApplication()).getCustomTypeface();
         this.initialise();
     }
 
@@ -69,6 +73,11 @@ public class SettingsActivity extends Activity implements View.OnClickListener {
         bSettingsSave = (Button) findViewById(R.id.bSettingsSave);
         bSettingsSave.setTypeface(font);
         bSettingsSave.setOnClickListener(this);
+
+        //Check http://xjaphx.wordpress.com/2011/09/20/colorizing-the-title-bar/ for changing title bar
+        TextView titleBar = (TextView) getWindow().findViewById(android.R.id.title);
+        titleBar.setTypeface(font);
+
     }
 
     @Override
@@ -83,47 +92,47 @@ public class SettingsActivity extends Activity implements View.OnClickListener {
                 try {
                     pressure_min_value = Integer.parseInt(etSettingsMinimum.getText().toString());
                 } catch (NumberFormatException e) {
-                    showAlertMessage("Error", "Please enter an integer number for Minimum");
+                    showAlertMessage(getString(R.string.settings_error_title), "Please enter an integer number for Minimum");
                     return;
                 }
 
                 try {
                     pressure_max_value = Integer.parseInt(etSettingsMaximum.getText().toString());
                 } catch (NumberFormatException e) {
-                    showAlertMessage("Error", "Please enter an integer number for Maximum");
+                    showAlertMessage(getString(R.string.settings_error_title), "Please enter an integer number for Maximum");
                     return;
                 }
 
                 try {
                     pressure_threshold_value = Integer.parseInt(etSettingsThreshold.getText().toString());
                 } catch (NumberFormatException e) {
-                    showAlertMessage("Error", "Please enter an integer number for Threshold");
+                    showAlertMessage(getString(R.string.settings_error_title), "Please enter an integer number for Threshold");
                     return;
                 }
 
                 try {
                     long_squeeze_duration_value = Integer.parseInt(etSettingsLongSqueezeDuration.getText().toString());
-                    if(long_squeeze_duration_value < 2){
-                        showAlertMessage("Error", "Long Squeeze Duration value must be larger than 1");
+                    if (long_squeeze_duration_value < 2) {
+                        showAlertMessage(getString(R.string.settings_error_title), "Long Squeeze Duration value must be larger than 1");
                         return;
                     }
                 } catch (NumberFormatException e) {
-                    showAlertMessage("Error", "Please enter an integer number for Long Squeeze Duration");
+                    showAlertMessage(getString(R.string.settings_error_title), "Please enter an integer number for Long Squeeze Duration");
                     return;
                 }
 
-                if(pressure_min_value > pressure_max_value){
-                    showAlertMessage("Error", "Minimum must be smaller than Maximum");
+                if (pressure_min_value > pressure_max_value) {
+                    showAlertMessage(getString(R.string.settings_error_title), "Minimum must be smaller than Maximum");
                     return;
                 }
 
-                if(pressure_min_value > pressure_threshold_value){
-                    showAlertMessage("Error", "Threshold must be bigger than Minimum");
+                if (pressure_min_value > pressure_threshold_value) {
+                    showAlertMessage(getString(R.string.settings_error_title), "Threshold must be bigger than Minimum");
                     return;
                 }
 
-                if(pressure_threshold_value > pressure_max_value){
-                    showAlertMessage("Error", "Threshold must be smaller than Maximum");
+                if (pressure_threshold_value > pressure_max_value) {
+                    showAlertMessage(getString(R.string.settings_error_title), "Threshold must be smaller than Maximum");
                     return;
                 }
 
@@ -144,10 +153,26 @@ public class SettingsActivity extends Activity implements View.OnClickListener {
     //Method for displaying a popup alert dialog
     private void showAlertMessage(String title, String Message) {
         AlertDialog.Builder popupBuilder = new AlertDialog.Builder(this);
-        popupBuilder.setTitle(title);
+        //popupBuilder.setTitle(title);
+
+        TextView tvTitle = new TextView(this);
+        tvTitle.setText(title);
+        tvTitle.setTypeface(font);
+        tvTitle.setTextColor(getResources().getColor(R.color.dbs_blue));
+        tvTitle.setPadding(30, 20, 30, 20);
+        tvTitle.setTextSize(25);
+        popupBuilder.setCustomTitle(tvTitle);
+
         popupBuilder.setMessage(Message);
         popupBuilder.setPositiveButton("OK", null);
-        popupBuilder.show();
+        //popupBuilder.show();
+        AlertDialog ad = popupBuilder.show();
+        TextView tvMsg = (TextView) ad.findViewById(android.R.id.message);
+        tvMsg.setTypeface(font);
+        tvMsg.setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen.textview_font_size));
+        Button b = (Button) ad.findViewById(android.R.id.button1);
+        b.setTypeface(font);
+        b.setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen.textview_font_size));
     }
 
 

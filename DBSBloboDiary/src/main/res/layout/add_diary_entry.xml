@@ -86,7 +86,11 @@
                 android:id="@+id/tvDiaryLocation"
                 android:layout_gravity="left|center_vertical"
                 android:textSize="@dimen/textview_font_size"
-                android:layout_weight="1" />
+                android:layout_weight="1"
+                android:singleLine="true"
+                android:ellipsize="marquee"
+                android:scrollHorizontally="true"
+                android:marqueeRepeatLimit="1" />
         </LinearLayout>
 
     </LinearLayout>

@@ -34,6 +34,8 @@ public class DeviceListActivity extends Activity {
     private static final String TAG = "DeviceListActivity";
     private static final boolean D = true;
 
+    Typeface font;
+
     // Return Intent extra
     public static String EXTRA_DEVICE_ADDRESS = "device_address";
 
@@ -46,9 +48,14 @@ public class DeviceListActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        font = ((MyApplication) getApplication()).getCustomTypeface();
+
         // Setup the window
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         setContentView(R.layout.device_list);
+
+        TextView titleBar = (TextView) getWindow().findViewById(android.R.id.title);
+        titleBar.setTypeface(font);
 
         // Set result CANCELED in case the user backs out
         setResult(Activity.RESULT_CANCELED);

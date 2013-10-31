@@ -36,6 +36,9 @@ public class MapListActivity extends ListActivity {
 
         font = ((MyApplication) getApplication()).getCustomTypeface();
 
+        TextView titleBar = (TextView) getWindow().findViewById(android.R.id.title);
+        titleBar.setTypeface(font);
+
         itemListener = new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long l) {

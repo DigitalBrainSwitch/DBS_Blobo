@@ -1,6 +1,7 @@
 package uk.co.digitalbrainswitch.dbsblobodiary;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -15,12 +16,20 @@ import android.widget.CalendarView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.GregorianCalendar;
+import java.util.StringTokenizer;
 
 import uk.co.digitalbrainswitch.dbsblobodiary.list_models.CalendarListModel;
 
@@ -49,15 +58,20 @@ public class CalendarDatePickerActivity extends Activity implements CalendarView
         cal.setFocusedMonthDateColor(Color.BLACK);
         cal.setUnfocusedMonthDateColor(getResources().getColor(R.color.light_gray));
         cal.setOnDateChangeListener(this);
+
+        //Change to a day before then change it back to current date. This forces the calendar to call onSelectedDayChange
+        cal.setDate(System.currentTimeMillis() - 86400001L);
+        cal.setDate(System.currentTimeMillis());
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-
-        //Change to a day before then change it back to current date. This forces the calendar to call onSelectedDayChange
-        cal.setDate(System.currentTimeMillis() - 86400001L);
-        cal.setDate(System.currentTimeMillis());
     }
 
     @Override
@@ -71,9 +85,11 @@ public class CalendarDatePickerActivity extends Activity implements CalendarView
 
         calendarListModelArrayList = getListOfDiaryEntriesFileNames(getString(R.string.stored_diary_directory), dateDirectory);
         if (calendarListModelArrayList.size() > 0) {
-            tvCalendarDisplay.setText(calendarListModelArrayList.size() + " DBS Diary Record(s) Found for " + displayDateString);
+            tvCalendarDisplay.setText(calendarListModelArrayList.size() + " DBS Diary Record" + (calendarListModelArrayList.size() > 1 ? "s" : "") + " Found for " + displayDateString);
+            tvCalendarDisplay.setTextColor(getResources().getColor(R.color.dbs_blue));
         } else {
             tvCalendarDisplay.setText("No DBS Diary Record for " + displayDateString);
+            tvCalendarDisplay.setTextColor(getResources().getColor(R.color.light_gray));
         }
         //update the listview with the content of the selected day
         listView.setAdapter(createAdapter());
@@ -119,7 +135,7 @@ public class CalendarDatePickerActivity extends Activity implements CalendarView
     }
 
     //a quick way to convert yyyy_MM_dd-hh.mm.ss to yyyy/MM/dd hh:mm:ss
-    private String processFileNameForListDisplay(String fileName){
+    private String processFileNameForListDisplay(String fileName) {
         return fileName.replaceAll("\\.", ":").replaceAll("_", "/").replaceAll("-", " ");
     }
 
@@ -153,8 +169,85 @@ public class CalendarDatePickerActivity extends Activity implements CalendarView
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         //########## TO DO ##########
         //Replace this toast with starting an activity to view diary record (with the filenamestring in the intent)
-        Toast.makeText(getApplicationContext(), ((CalendarListModel) parent.getItemAtPosition(position)).getFileNameString(), Toast.LENGTH_SHORT).show();
+        String fileName = ((CalendarListModel) parent.getItemAtPosition(position)).getFileNameString();
+        String directoryName = getDateString(fileName);
+
+        File root = Environment.getExternalStorageDirectory();
+        File directory = new File(root, getString(R.string.stored_diary_directory) + "/" + directoryName);
+        File diaryEntryFile = new File(directory, fileName + ".txt");
+
+        JSONObject diaryJSONObject = parseJSONData(diaryEntryFile);
+        if (diaryJSONObject != null) {
+            try {
+                String diaryDate = diaryJSONObject.getString(getString(R.string.diary_data_key_date));
+                String diaryTime = diaryJSONObject.getString(getString(R.string.diary_data_key_time));
+                String diaryLocation = diaryJSONObject.getString(getString(R.string.diary_data_key_location));
+                String diaryContent = diaryJSONObject.getString(getString(R.string.diary_data_key_content));
+                String diaryLastUpdated = diaryJSONObject.getString(getString(R.string.diary_data_key_last_updated_time));
+                String diaryLatitude = diaryJSONObject.getString(getString(R.string.diary_data_key_location_latitude));
+                String diaryLongitude = diaryJSONObject.getString(getString(R.string.diary_data_key_location_longitude));
+                String diaryCreatedTime = diaryJSONObject.getString(getString(R.string.diary_data_key_created_time));
+                boolean addNewEntry = false;
+
+                Intent intent = new Intent(this, AddDiaryEntryActivity.class);
+                intent.putExtra(getString(R.string.intent_extra_diary_entry_date), processDateForFile(diaryDate));
+                intent.putExtra(getString(R.string.intent_extra_diary_entry_time), processTimeForFile(diaryTime));
+                intent.putExtra(getString(R.string.intent_extra_diary_entry_location), diaryLocation);
+                intent.putExtra(getString(R.string.intent_extra_diary_entry_content), diaryContent);
+                intent.putExtra(getString(R.string.intent_extra_diary_entry_add_or_update), addNewEntry);
+                intent.putExtra(getString(R.string.intent_extra_diary_entry_created_time), diaryCreatedTime);
+
+                intent.putExtra(getString(R.string.intent_extra_diary_entry_location_latitude), diaryLatitude);
+                intent.putExtra(getString(R.string.intent_extra_diary_entry_location_longitude), diaryLongitude);
+
+                startActivity(intent);
+
+
+                //Toast.makeText(getApplicationContext(), diaryDate + "\n" + diaryTime + "\n" + diaryLocation + "\n" + diaryContent + "\n" + diaryLastUpdated + "\n" + diaryLatitude + "\n" + diaryLongitude, Toast.LENGTH_SHORT).show();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
+        //Toast.makeText(getApplicationContext(), ((CalendarListModel) parent.getItemAtPosition(position)).getFileNameString(), Toast.LENGTH_SHORT).show();
+//        Toast.makeText(getApplicationContext(), diaryEntryFile.getAbsolutePath(), Toast.LENGTH_SHORT).show();
         //########## TO DO ##########
+    }
+
+    private String processDateForFile(String dateString) {
+        return dateString.replaceAll("/", "_");
+    }
+
+    private String processTimeForFile(String timeString) {
+        return timeString.replaceAll(":", "\\.");
+    }
+
+    private JSONObject parseJSONData(File diaryEntry) {
+        String jsonString = null;
+        JSONObject jsonObject = null;
+
+        try {
+            FileInputStream fileInputStream = new FileInputStream(diaryEntry);
+            int sizeOfJSONFile = fileInputStream.available();
+            byte[] bytes = new byte[sizeOfJSONFile];
+            fileInputStream.read(bytes);
+            fileInputStream.close();
+            jsonString = new String(bytes, "UTF-8");
+            jsonObject = new JSONObject(jsonString);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return jsonObject;
+    }
+
+    private String getDateString(String text) {
+        StringTokenizer st = new StringTokenizer(text, "-");
+        return st.nextToken();
     }
 
     //build arrayadapter for displaying diary entries

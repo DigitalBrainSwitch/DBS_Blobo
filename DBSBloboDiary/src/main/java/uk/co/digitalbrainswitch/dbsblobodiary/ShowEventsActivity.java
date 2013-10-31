@@ -32,6 +32,9 @@ public class ShowEventsActivity extends Activity implements View.OnClickListener
         tvShowByTimeline.setTypeface(font);
         tvShowByMap = (TextView) findViewById(R.id.tvShowByMap);
         tvShowByMap.setTypeface(font);
+
+        TextView titleBar = (TextView) getWindow().findViewById(android.R.id.title);
+        titleBar.setTypeface(font);
     }
 
     @Override

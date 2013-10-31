@@ -37,6 +37,9 @@ public class TimeDataListActivity extends ListActivity {
 
         font = ((MyApplication) getApplication()).getCustomTypeface();
 
+        TextView titleBar = (TextView) getWindow().findViewById(android.R.id.title);
+        titleBar.setTypeface(font);
+
         //initialise item click listener
         //when user selects an item, it starts an activity to show visualisation of the selected file data
         itemListener = new AdapterView.OnItemClickListener() {

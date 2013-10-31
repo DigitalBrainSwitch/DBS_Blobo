@@ -35,6 +35,9 @@ public class ReflectionActivity extends Activity implements View.OnClickListener
         tvViewEntriesText.setTypeface(font);
         tvAddEntryText = (TextView) findViewById(R.id.tvAddEntryText);
         tvAddEntryText.setTypeface(font);
+
+        TextView titleBar = (TextView) getWindow().findViewById(android.R.id.title);
+        titleBar.setTypeface(font);
     }
 
     @Override
@@ -53,10 +56,15 @@ public class ReflectionActivity extends Activity implements View.OnClickListener
                 intent = new Intent(this, AddDiaryEntryActivity.class);
                 intent.putExtra(getString(R.string.intent_extra_diary_entry_date), getDateString(c));
                 intent.putExtra(getString(R.string.intent_extra_diary_entry_time), getTimeString(c));
-                intent.putExtra(getString(R.string.intent_extra_diary_entry_location), "General Entry - No Event Location.");
+                intent.putExtra(getString(R.string.intent_extra_diary_entry_location), getString(R.string.diary_entry_empty_location_general_entry));
                 intent.putExtra(getString(R.string.intent_extra_diary_entry_content), "");
                 boolean addNewEntry = true;
                 intent.putExtra(getString(R.string.intent_extra_diary_entry_add_or_update), addNewEntry);
+                intent.putExtra(getString(R.string.intent_extra_diary_entry_created_time), "");
+
+                intent.putExtra(getString(R.string.intent_extra_diary_entry_location_latitude), getString(R.string.diary_entry_empty_latitude));
+                intent.putExtra(getString(R.string.intent_extra_diary_entry_location_longitude), getString(R.string.diary_entry_empty_longitude));
+
                 startActivity(intent);
                 //finish();
                 break;
