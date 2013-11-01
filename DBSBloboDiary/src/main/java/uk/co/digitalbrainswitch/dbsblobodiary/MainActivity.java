@@ -76,9 +76,11 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
     public static final int MESSAGE_WRITE = 3;
     public static final int MESSAGE_DEVICE_NAME = 4;
     public static final int MESSAGE_TOAST = 5;
+    public static final int MESSAGE_DEVICE_ADDRESS = 6;
 
     // Key names received from the BluetoothChatService Handler
     public static final String DEVICE_NAME = "device_name";
+    public static final String DEVICE_ADDRESS = "device_address";
     public static final String TOAST = "toast";
 
     // Intent request codes
@@ -95,6 +97,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
 
     // Name of the connected device
     private String mConnectedDeviceName = null;
+    private String mConnectedDeviceAddress = null;
     // Array adapter for the conversation thread
     private ArrayAdapter<String> mConversationArrayAdapter;
     // String buffer for outgoing messages
@@ -296,7 +299,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
     private void connectBluetoothBlobo() {
         //connect blobo via bluetooth
         //Connect to bluetooth and display read data on tvDisplay
-        tvDisplay.setText("");
+        //tvDisplay.setText("");
         Intent serverIntent = new Intent(getApplicationContext(), DeviceListActivity.class);
         startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE_INSECURE);
     }
@@ -395,7 +398,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
                     if (D) Log.i(TAG, "MESSAGE_STATE_CHANGE: " + msg.arg1);
                     switch (msg.arg1) {
                         case BluetoothChatService.STATE_CONNECTED:
-                            String status = getString(R.string.title_connected_to) + " " + mConnectedDeviceName;
+                            String status = getString(R.string.title_connected_to) + " " + mConnectedDeviceName + " (" + mConnectedDeviceAddress + ")";
                             vibrate(300L);
                             setStatus(status);
                             nm.cancel(uniqueID);
@@ -463,8 +466,9 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
                 case MESSAGE_DEVICE_NAME:
                     // save the connected device's name
                     mConnectedDeviceName = msg.getData().getString(DEVICE_NAME);
+                    mConnectedDeviceAddress = msg.getData().getString(DEVICE_ADDRESS);
 //                    setStatus("Connected to " + mConnectedDeviceName);
-                    Toast.makeText(getApplicationContext(), "Connected to " + mConnectedDeviceName, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "Connected to " + mConnectedDeviceName + " (" + mConnectedDeviceAddress + ")", Toast.LENGTH_SHORT).show();
 
                     //update the current start time
                     startTime = SystemClock.uptimeMillis();
@@ -626,22 +630,6 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
         }
 
         return true;
-    }
-
-    private void saveValueToFile(String data) {
-//        File root = Environment.getExternalStorageDirectory();
-//        File file = new File(root, "Download/values.txt");
-//
-//        try {
-//            if (root.canWrite()) {
-//                FileWriter filewriter = new FileWriter(file, true);
-//                BufferedWriter out = new BufferedWriter(filewriter);
-//                out.write(data + "\n");
-//                out.close();
-//            }
-//        } catch (IOException e) {
-//            Log.e("TAG", "Could not write file " + e.getMessage());
-//        }
     }
 
     private void performAction() {
