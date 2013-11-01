@@ -94,6 +94,8 @@
     <string name="intent_extra_diary_entry_location_latitude">INTENT_EXTRA_DIARY_LOCATION_LATITUDE</string>
     <string name="intent_extra_diary_entry_location_longitude">INTENT_EXTRA_DIARY_LOCATION_LONGITUDE</string>
     <string name="intent_extra_diary_entry_created_time">INTENT_EXTRA_DIARY_CREATED_TIME</string>
+    <string name="intent_extra_disable_diary_in_map">INTENT_EXTRA_DISABLE_DIARY_IN_MAP</string>
+
 
 
     <string name="title_activity_reflection">DBS Diary</string>
@@ -103,8 +105,8 @@
     <string name="title_activity_add_diary_entry">Diary Entry</string>
 
     <!--Reflection Activity-->
-    <string name="reflection_activity_view_entries">View Entries</string>
-    <string name="reflection_activity_add_entry">Add a General Entry</string>
+    <string name="reflection_activity_view_entries">View Recorded Entries</string>
+    <string name="reflection_activity_add_entry">Add a General Entry for Today</string>
 
     <!--Add Diary Entry-->
     <string name="add_diary_date_string">Date:</string>
@@ -124,9 +126,8 @@
     <string name="diary_button_update_string">Update Diary Entry</string>
 
     <string name="diary_empty_alert_title">Cannot Save Diary Entry</string>
-    <string name="diary_empty_alert_message">Diary content is empty. Please enter content.</string>
+    <string name="diary_empty_alert_message">Content of a diary cannot be empty. Please enter content.</string>
     <string name="diary_entry_empty_location_general_entry">General Entry - No Event Location.</string>
     <string name="diary_entry_empty_latitude">NO_LATITUDE</string>
     <string name="diary_entry_empty_longitude">NO_LONGITUDE</string>
-
 </resources>

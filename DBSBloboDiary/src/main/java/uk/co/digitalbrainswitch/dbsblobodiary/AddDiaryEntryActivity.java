@@ -3,6 +3,7 @@ package uk.co.digitalbrainswitch.dbsblobodiary;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
@@ -29,6 +30,11 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import uk.co.digitalbrainswitch.dbsblobodiary.location.TimeLocation;
 
 public class AddDiaryEntryActivity extends Activity implements View.OnClickListener, View.OnLongClickListener {
 
@@ -92,7 +98,7 @@ public class AddDiaryEntryActivity extends Activity implements View.OnClickListe
         tvDiaryTime.setTypeface(font);
         tvDiaryLocation = (TextView) findViewById(R.id.tvDiaryLocation);
         tvDiaryLocation.setTypeface(font);
-        tvDiaryLocation.setSelected(false);
+        tvDiaryLocation.setSelected(true);
         tvDiaryLocation.setOnClickListener(this);
         tvDiaryLocation.setOnLongClickListener(this);
         etDiaryText = (EditText) findViewById(R.id.etDiaryText);
@@ -128,53 +134,34 @@ public class AddDiaryEntryActivity extends Activity implements View.OnClickListe
         return jsonObject.toString();
     }
 
-/*    private static String writeUsingXMLSerializer (String diaryDate, String diaryTime, String diaryLocation, String diaryContent) throws IOException {
-        final String NAMESPACE = "";
-        XmlSerializer xmlSerializer = Xml.newSerializer();
-        StringWriter writer = new StringWriter();
-        xmlSerializer.setOutput(writer);
-
-        xmlSerializer.startDocument("UTF-8", true);
-
-        xmlSerializer.startTag(NAMESPACE, "DiaryEntry");
-        xmlSerializer.attribute(NAMESPACE, "Time", "");
-        xmlSerializer.endTag(NAMESPACE, "DiaryEntry");
-
-        xmlSerializer.endDocument();
-
-        return writer.toString();
-    }*/
-
     //display a confirmation dialog before saving diary entry
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.bDiaryAdd:
                 if (!etDiaryText.getText().toString().matches("")) { //check if diary is empty
-                    confirmEntry(getApplicationContext());
+                    confirmEntry();
                 } else {
                     showAlertMessage(getString(R.string.diary_empty_alert_title), getString(R.string.diary_empty_alert_message));
                 }
                 break;
             case R.id.tvDiaryLocation:
-                
-                //TO DO
-                //Open location in MapActivity
-
-                Toast.makeText(getApplicationContext(), _diaryLatitude + "," + _diaryLongitude, Toast.LENGTH_LONG).show();
+//                tvDiaryLocation.setSelected(!tvDiaryLocation.isSelected());
+                showAddressMessage(getString(R.string.add_diary_location_string), tvDiaryLocation.getText().toString());
                 break;
             default:
+                tvDiaryLocation.setSelected(false);
                 break;
         }
     }
 
     //confirm whether the user wants to save diary entry
-    private void confirmEntry(Context context) {
+    private void confirmEntry() {
         AlertDialog.Builder dialog = new AlertDialog.Builder(this);
         //dialog.setTitle("Confirmation");
-        dialog.setMessage("Save Entry to DBS Diary?");
+        dialog.setMessage(((isAddFunction) ? "Save" : "Update") + " DBS Diary Entry?");
         dialog.setCancelable(true);
-        dialog.setPositiveButton("Save Entry", new DialogInterface.OnClickListener() {
+        dialog.setPositiveButton((isAddFunction) ? "Save Entry" : "Update Entry", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int buttonId) {
                 saveDiaryEntry();
                 finish();
@@ -213,7 +200,7 @@ public class AddDiaryEntryActivity extends Activity implements View.OnClickListe
                 }
                 break;
             case R.id.tvDiaryLocation:
-                showAlertMessage(getString(R.string.add_diary_location_string), tvDiaryLocation.getText().toString());
+                showLocationOnMap();
                 break;
             default:
                 break;
@@ -250,7 +237,14 @@ public class AddDiaryEntryActivity extends Activity implements View.OnClickListe
             if (file.canWrite()) {
                 FileWriter filewriter = new FileWriter(file, false);
                 BufferedWriter out = new BufferedWriter(filewriter);
-                out.write(writeUsingJSON(tvDiaryDate.getText().toString(), tvDiaryTime.getText().toString(), tvDiaryLocation.getText().toString(), etDiaryText.getText().toString(), _diaryCreatedtime, _diaryLatitude, _diaryLongitude));
+                out.write(
+                        writeUsingJSON(tvDiaryDate.getText().toString(),
+                                tvDiaryTime.getText().toString(),
+                                tvDiaryLocation.getText().toString(),
+                                etDiaryText.getText().toString(),
+                                _diaryCreatedtime,
+                                _diaryLatitude,
+                                _diaryLongitude));
                 out.close();
                 Toast.makeText(getApplicationContext(), "Diary Entry Saved", Toast.LENGTH_SHORT).show();
             }
@@ -259,16 +253,6 @@ public class AddDiaryEntryActivity extends Activity implements View.OnClickListe
         } catch (JSONException e) {
             Log.e("TAG", "Could not write file " + e.getMessage());
         }
-
-
-//        try {
-//            Toast.makeText(getApplicationContext(),
-//                    writeUsingJSON(tvDiaryDate.getText().toString(), tvDiaryTime.getText().toString(), tvDiaryLocation.getText().toString(), etDiaryText.getText().toString()),
-//                    Toast.LENGTH_LONG).show();
-//            finish();
-//        } catch (JSONException e) {
-//            e.printStackTrace();
-//        }
     }
 
     //Method for displaying a popup alert dialog
@@ -296,6 +280,69 @@ public class AddDiaryEntryActivity extends Activity implements View.OnClickListe
         b.setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen.textview_font_size));
 
     }
+
+    private void showAddressMessage(String title, String Message) {
+        AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+        dialog.setTitle(title);
+        dialog.setMessage(Message);
+        dialog.setCancelable(true);
+        if (!(_diaryLatitude.equalsIgnoreCase(getString(R.string.diary_entry_empty_latitude)) ||
+                _diaryLongitude.equalsIgnoreCase(getString(R.string.diary_entry_empty_longitude)))) {
+            dialog.setPositiveButton("Show Map", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int buttonId) {
+                    showLocationOnMap();
+                }
+            });
+            dialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int buttonId) {
+                    //do nothing
+                }
+            });
+        } else {
+            dialog.setPositiveButton("OK", null);
+        }
+        dialog.setIcon(R.drawable.ic_dialog_map);
+        AlertDialog ad = dialog.show();
+        TextView tv = (TextView) ad.findViewById(android.R.id.message);
+        tv.setTypeface(font);
+        tv.setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen.textview_font_size));
+        Button b = (Button) ad.findViewById(android.R.id.button1);
+        b.setTypeface(font);
+        b.setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen.textview_font_size));
+        b.setTextColor(getResources().getColor(R.color.dbs_blue));
+        b = (Button) ad.findViewById(android.R.id.button2);
+        b.setTypeface(font);
+        b.setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen.textview_font_size));
+    }
+
+    private void showLocationOnMap() {
+        if (!(_diaryLatitude.equalsIgnoreCase(getString(R.string.diary_entry_empty_latitude)) ||
+                _diaryLongitude.equalsIgnoreCase(getString(R.string.diary_entry_empty_longitude)))) {
+            //TO DO
+            //Open location in MapActivity
+            //http://stackoverflow.com/questions/5306803/how-to-convert-the-following-string-to-date-or-calendar-object
+            String dateTimeString = _diaryDate + "-" + _diaryTime;
+            String pattern = "yyyy_MM_dd-HH.mm.ss";
+            try {
+                Date date = new SimpleDateFormat(pattern).parse(dateTimeString);
+                double latitudeDouble = Double.parseDouble(_diaryLatitude);
+                double longitudeDouble = Double.parseDouble(_diaryLongitude);
+                TimeLocation tl = new TimeLocation(date.getTime(), latitudeDouble, longitudeDouble);
+                Intent intent = new Intent(this, MapActivity.class);
+                intent.putExtra(getString(R.string.intent_extra_time_location), tl);
+                intent.putExtra(getString(R.string.intent_extra_number_of_map_points), getString(R.string.single_map_point));
+                intent.putExtra(getString(R.string.intent_extra_disable_diary_in_map), true);
+                startActivity(intent);
+
+                //Toast.makeText(getApplicationContext(), date.toString() + "\n" + _diaryLatitude + "," + _diaryLongitude, Toast.LENGTH_LONG).show();
+            } catch (ParseException e) {
+                e.printStackTrace();
+                Toast.makeText(getApplicationContext(), "Cannot open location in map.", Toast.LENGTH_LONG).show();
+            }
+
+        }
+    }
+
 
 //    @Override
 //    public boolean onCreateOptionsMenu(Menu menu) {

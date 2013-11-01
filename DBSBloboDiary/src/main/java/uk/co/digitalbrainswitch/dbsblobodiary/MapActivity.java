@@ -186,7 +186,9 @@ public class MapActivity extends Activity implements GoogleMap.OnMarkerClickList
         marker.setSnippet(addressText);
         marker.showInfoWindow();
 //        googleMap.setOnMarkerClickListener(this);
-        googleMap.setOnInfoWindowClickListener(this);
+        boolean disableAddDiary = bundle.getBoolean(getString(R.string.intent_extra_disable_diary_in_map));
+        if(!disableAddDiary)
+            googleMap.setOnInfoWindowClickListener(this);
         //googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 13), 2000, null);
         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 13));
     }
