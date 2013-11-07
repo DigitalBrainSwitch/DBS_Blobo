@@ -106,7 +106,7 @@
 
     <!--Reflection Activity-->
     <string name="reflection_activity_view_entries">View Recorded Entries</string>
-    <string name="reflection_activity_add_entry">Add a General Entry for Today</string>
+    <string name="reflection_activity_add_entry">Add A New General Entry</string>
 
     <!--Add Diary Entry-->
     <string name="add_diary_date_string">Date:</string>

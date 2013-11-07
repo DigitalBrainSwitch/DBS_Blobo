@@ -57,6 +57,7 @@ import uk.co.digitalbrainswitch.dbsblobodiary.bluetooth.BluetoothChatService;
 import uk.co.digitalbrainswitch.dbsblobodiary.bluetooth.DeviceListActivity;
 import uk.co.digitalbrainswitch.dbsblobodiary.location.TimeLocation;
 import uk.co.digitalbrainswitch.dbsblobodiary.util.LowPassFilter;
+import uk.co.digitalbrainswitch.dbsblobodiary.util.SimpleMovingAveragesSmoothing;
 import uk.co.digitalbrainswitch.dbsblobodiary.visual.Circle;
 
 import static android.preference.PreferenceManager.getDefaultSharedPreferences;
@@ -66,7 +67,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
     Typeface font;
 
     private String TAG = "DBS BLOBO DIARY";
-    private static final boolean D = false;
+    private static final boolean D = true;
 
     static final int uniqueID = 782347823; // a random ID
 
@@ -94,6 +95,9 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
     public static double minPressure = 10000;
     public static double thresholdPressure = 22000;
     public static int longSqueezeDuration = 3; //3 seconds
+
+    //Moving average smooth filter
+    private SimpleMovingAveragesSmoothing SMAFilter;
 
     // Name of the connected device
     private String mConnectedDeviceName = null;
@@ -160,6 +164,8 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
 
         nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         nm.cancel(uniqueID);
+
+        SMAFilter = new SimpleMovingAveragesSmoothing(13); //windows size 10
     }
 
     private void initialise() {
@@ -240,9 +246,12 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
         if (D) Log.e(TAG, "-- ON STOP --");
     }
 
+
+
     @Override
     protected void onDestroy() {
         nm.cancel(uniqueID);
+        //showNotification(getString(R.string.app_name) + " App Deactivated", "Click Here to start " + getString(R.string.app_name) + " App");
         super.onDestroy();
         // Stop the Bluetooth chat services
         if (mChatService != null) mChatService.stop();
@@ -413,6 +422,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
                             tvDisplay.setText(R.string.no_pressure_value);
                             MainActivity.pressure = 0;
                             showNotification("Blobo Disconnected", "Blobo is not connected to DBS Diary");
+                            SMAFilter.resetRecentData();
                             break;
                     }
                     break;
@@ -428,8 +438,10 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
 
                         //setStatus(String.valueOf(numA));
                         pressure = numA;
-                        prevPressure = pressure = LowPassFilter.filter(prevPressure, pressure, 0.5f);
-                        DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+                        prevPressure = pressure = SMAFilter.addMostRecentValue(pressure);
+                        //System.err.println(((Math.abs(numA - pressure) > 100) ? "YES" : "NO") + ": " + numA + " " + pressure);
+                        //prevPressure = pressure = LowPassFilter.filter(prevPressure, pressure, 0.5f);
+                        DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                         Calendar calendar = Calendar.getInstance();
                         calendar.setTimeInMillis(System.currentTimeMillis());
                         final String formattedTime = formatter.format(calendar.getTime());
@@ -485,7 +497,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
 
     private void showNotification(String title, String body){
         Intent intent = new Intent(this, MainActivity.class);
-        //set intent filter to be the same as android's luancher, so clicking on the notification resumes the paused state of the app
+        //set intent filter to be the same as android's launcher, so clicking on the notification resumes the paused state of the app
         //http://stackoverflow.com/questions/5502427/resume-application-and-stack-from-notification
         intent.setAction(Intent.ACTION_MAIN);
         intent.addCategory(Intent.CATEGORY_LAUNCHER);
@@ -501,24 +513,24 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
         nm.notify(uniqueID, n.build());
     }
 
-    private int minutes, seconds;
-    //    private int currentSecond = 0;
+//    private int minutes, seconds;
+//    private int currentSecond = 0;
 //    private int lastSecond = 0;
     public static int longSqueezeCounter = 0;
-    //    public static int hardSqueezeCounter = 0;
+//    public static int hardSqueezeCounter = 0;
 //    private int vibrationTime = 150;
-    private double lastPressureValue = 0;
+//    private double lastPressureValue = 0;
 
     final Runnable optionTimer = new Runnable() {
         @Override
         public void run() {
             //calculate the difference between times
-            timeInMillies = SystemClock.uptimeMillis() - startTime;
+//            timeInMillies = SystemClock.uptimeMillis() - startTime;
 
             //update the minutes and seconds of using the blobo
-            seconds = (int) (timeInMillies / 1000);
-            minutes = seconds / 60;
-            seconds = seconds % 60;
+//            seconds = (int) (timeInMillies / 1000);
+//            minutes = seconds / 60;
+//            seconds = seconds % 60;
 //            currentSecond++;
 
             //prolonged squeeze of at least <longSqueezeDuration> seconds application logic
@@ -551,7 +563,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
 
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_EEEE"); //e.g. 2013-10-14_Monday
 
-    private void saveTimeAndLocationToFile(long currentTimeInMillies, String data) {
+    private void saveTimeAndLocationToFile(long currentTimeInMillies, String data, String pressure, String threshold) {
 
         File root = Environment.getExternalStorageDirectory();
 
@@ -581,12 +593,13 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
             Log.e("TAG", "Could not write file " + e.getMessage());
         }
 
+        //discard the second event if it's within 1 min of the previous event
         if (validEvent(currentTimeInMillies, file, 60000L)) { //60000 millisec = 1 min
             try {
                 if (root.canWrite()) {
                     FileWriter filewriter = new FileWriter(file, true);
                     BufferedWriter out = new BufferedWriter(filewriter);
-                    out.write(currentTimeInMillies + ";" + data + "\n");
+                    out.write(currentTimeInMillies + ";" + data + ";" + pressure + ":" + threshold + "\n");
                     out.close();
                 }
             } catch (IOException e) {
@@ -648,10 +661,10 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
                     e.printStackTrace();
                 }
 
+                saveTimeAndLocationToFile(System.currentTimeMillis(), currentLocation.getLatitude() + "," + currentLocation.getLongitude(), ((int) pressure) + "", ((int) thresholdPressure) + "");
+
                 long pattern[] = {0, 300, 200, 300, 200, 300, 0};
                 vibrate(pattern);
-
-                saveTimeAndLocationToFile(System.currentTimeMillis(), currentLocation.getLatitude() + "," + currentLocation.getLongitude());
 
                 //stop update after a location is received
                 stopPeriodicUpdates();

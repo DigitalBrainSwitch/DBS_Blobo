@@ -1,12 +1,14 @@
 package uk.co.digitalbrainswitch.dbsblobodiary;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.app.Activity;
 import android.os.Environment;
+import android.os.Vibrator;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -68,10 +70,16 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
         //set up UI
         TextView txt = (TextView) findViewById(R.id.tvShowTimeDate);
         txt.setTypeface(font);
-        txt.append(selectedFileName);
+        txt.append(translateFileNameToDate(selectedFileName));
 
         this.initialise();
 
+    }
+
+    //fileName format YYYY-MM-DD_<day of week> to YYYY/MM/DD <day of week>
+    private String translateFileNameToDate(String fileNameString) {
+        StringTokenizer st = new StringTokenizer(fileNameString, ".");
+        return st.nextToken().replaceAll("-", "/").replaceAll("_", " ");
     }
 
     @Override
@@ -145,6 +153,7 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
         SeriesSelection seriesSelection = mChartView.getCurrentSeriesAndPoint();
         double[] xy = mChartView.toRealPoint(0);
         if (seriesSelection != null) {
+            vibrate(100);
             //When user touched a point on the graph
             Intent intent = new Intent(this, MapActivity.class);
             long key = (long) seriesSelection.getXValue();
@@ -176,7 +185,7 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
         renderer.setLabelsTextSize(25);
         //renderer.setLegendTextSize(20);
         renderer.setShowLegend(false);
-        renderer.setPointSize(25f);
+        renderer.setPointSize(20f);
         renderer.setYAxisMax(1.5f);
         renderer.setYAxisMin(0.5f);
         renderer.setZoomEnabled(true, false);
@@ -254,5 +263,10 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
         popupBuilder.setMessage(Message);
         popupBuilder.setPositiveButton("OK", null);
         popupBuilder.show();
+    }
+
+    private void vibrate(long time) {
+        Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        v.vibrate(time);
     }
 }

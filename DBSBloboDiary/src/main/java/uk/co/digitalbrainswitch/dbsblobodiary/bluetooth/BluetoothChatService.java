@@ -438,7 +438,10 @@ public class BluetoothChatService {
                     int numA = ((int)buffer[1] & 0xff) + ((int)buffer[0] & 0xff) *256;
 
                     if (numA == 65 ){
-                        byte[] pres = {buffer[17],buffer[16]};
+                        byte[] pres = {buffer[17],buffer[16]}; //bytes 16 and 17 are for pressure (P_LSB, P_MSB)
+                        //accelerometers: 4 to 9 (A1_LSB, A1_MSB, A2_LSB, A2_MSB, ...)
+                        //magnetometers: 10 to 15 (R1_LSB, R1_MSB, ...)
+
                         byte[] pres2 = Arrays.copyOf(pres, pres.length);
                         mHandler.obtainMessage(MainActivity.MESSAGE_READ, 4, -1, pres2).sendToTarget();
                     }
@@ -451,7 +454,7 @@ public class BluetoothChatService {
 
                     //Send a byte every 500 packets received to keep the connection alive
                     if(COUNT > 500){
-                        byte[] send = {13};
+                        byte[] send = {13}; //fastest signal rate char(13) = 'D'. 'A' is the slowest.
                         write(send);
                         COUNT = 0;
                     }else{
