@@ -126,7 +126,8 @@ public class AddDiaryEntryActivity extends Activity implements View.OnClickListe
         jsonObject.put(getString(R.string.diary_data_key_content), diaryContent);
         long currentTime = System.currentTimeMillis();
         jsonObject.put(getString(R.string.diary_data_key_last_updated_time), currentTime);
-        jsonObject.put(getString(R.string.diary_data_key_created_time), (isAddFunction) ? currentTime : createdTime);
+        long createdTimeLong = Long.parseLong(createdTime); //convert createdTime back to a long value
+        jsonObject.put(getString(R.string.diary_data_key_created_time), (isAddFunction) ? currentTime : createdTimeLong);
 
         jsonObject.put(getString(R.string.diary_data_key_location_latitude), diaryLatitude);
         jsonObject.put(getString(R.string.diary_data_key_location_longitude), diaryLongitude);
