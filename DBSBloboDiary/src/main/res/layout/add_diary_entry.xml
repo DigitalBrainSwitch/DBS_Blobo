@@ -91,6 +91,13 @@
                 android:ellipsize="marquee"
                 android:scrollHorizontally="true"
                 android:marqueeRepeatLimit="1" />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Map"
+                android:id="@+id/bMapView"
+                android:textSize="@dimen/textview_font_size" />
         </LinearLayout>
 
     </LinearLayout>

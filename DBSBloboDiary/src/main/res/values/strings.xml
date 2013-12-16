@@ -30,8 +30,8 @@
     <string name="title_activity_map">Map View</string>
 
     <!-- Directories -->
-    <string name="stored_data_directory">/Download/data</string>
-    <string name="stored_diary_directory">/Download/diary</string>
+    <string name="stored_data_directory">/Download/DBSBloboDiary/eventdata</string>
+    <string name="stored_diary_directory">/Download/DBSBloboDiary/diary</string>
 
     <!-- About Text -->
     <string name="text_about">

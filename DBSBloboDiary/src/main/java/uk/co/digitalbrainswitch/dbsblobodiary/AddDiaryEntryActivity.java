@@ -41,7 +41,7 @@ public class AddDiaryEntryActivity extends Activity implements View.OnClickListe
     Typeface font;
     TextView tvDiaryDate, tvDiaryTime, tvDiaryLocation;
     EditText etDiaryText;
-    Button bDiaryAdd;
+    Button bDiaryAdd, bMapView;
 
     boolean isAddFunction = true; //true add, false for update
 
@@ -78,6 +78,11 @@ public class AddDiaryEntryActivity extends Activity implements View.OnClickListe
         tvDiaryDate.setText(processDateForDisplay(_diaryDate));
         tvDiaryTime.setText(processTimeForDisplay(_diaryTime));
         tvDiaryLocation.setText(_diaryLocation);
+
+        if (!(_diaryLatitude.equalsIgnoreCase(getString(R.string.diary_entry_empty_latitude)) ||
+                _diaryLongitude.equalsIgnoreCase(getString(R.string.diary_entry_empty_longitude)))) {
+            bMapView.setEnabled(true);
+        }
     }
 
     private String processDateForDisplay(String dateString) {
@@ -103,6 +108,11 @@ public class AddDiaryEntryActivity extends Activity implements View.OnClickListe
         tvDiaryLocation.setOnLongClickListener(this);
         etDiaryText = (EditText) findViewById(R.id.etDiaryText);
         etDiaryText.setTypeface(font);
+
+        bMapView = (Button) findViewById(R.id.bMapView);
+        bMapView.setTypeface(font);
+        bMapView.setEnabled(false);
+        bMapView.setOnClickListener(this);
     }
 
     private void initialiseAddButton() {
@@ -126,7 +136,7 @@ public class AddDiaryEntryActivity extends Activity implements View.OnClickListe
         jsonObject.put(getString(R.string.diary_data_key_content), diaryContent);
         long currentTime = System.currentTimeMillis();
         jsonObject.put(getString(R.string.diary_data_key_last_updated_time), currentTime);
-        long createdTimeLong = Long.parseLong(createdTime); //convert createdTime back to a long value
+        long createdTimeLong = (isAddFunction) ? currentTime : Long.parseLong(createdTime); //convert createdTime back to a long value
         jsonObject.put(getString(R.string.diary_data_key_created_time), (isAddFunction) ? currentTime : createdTimeLong);
 
         jsonObject.put(getString(R.string.diary_data_key_location_latitude), diaryLatitude);
@@ -149,6 +159,9 @@ public class AddDiaryEntryActivity extends Activity implements View.OnClickListe
             case R.id.tvDiaryLocation:
 //                tvDiaryLocation.setSelected(!tvDiaryLocation.isSelected());
                 showAddressMessage(getString(R.string.add_diary_location_string), tvDiaryLocation.getText().toString());
+                break;
+            case R.id.bMapView:
+                showLocationOnMap();
                 break;
             default:
                 tvDiaryLocation.setSelected(false);

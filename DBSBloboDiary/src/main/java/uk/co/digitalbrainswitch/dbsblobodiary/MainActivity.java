@@ -165,7 +165,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
         nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         nm.cancel(uniqueID);
 
-        SMAFilter = new SimpleMovingAveragesSmoothing(13); //windows size 10
+        SMAFilter = new SimpleMovingAveragesSmoothing(13); //windows size 13
     }
 
     private void initialise() {
@@ -568,7 +568,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
         File root = Environment.getExternalStorageDirectory();
 
         //create directory if it does not exist
-        File folder = new File(root + "/Download/data/");
+        File folder = new File(root, getString(R.string.stored_data_directory)); //new File(root + "/Download/data/");
         if (!folder.exists()) {
             boolean success = folder.mkdirs();
             if (!success) {
@@ -599,7 +599,13 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
                 if (root.canWrite()) {
                     FileWriter filewriter = new FileWriter(file, true);
                     BufferedWriter out = new BufferedWriter(filewriter);
-                    out.write(currentTimeInMillies + ";" + data + ";" + pressure + ":" + threshold + "\n");
+                    Date currentDateTime = new Date(currentTimeInMillies);
+                    SimpleDateFormat sdfReadableDate = new SimpleDateFormat("yyyy/MM/dd");
+                    SimpleDateFormat sdfReadableTime = new SimpleDateFormat("HH:mm:ss"); //e.g. 2013-10-14_Monday
+                    String readableDate = sdfReadableDate.format(currentDateTime); //convert to millisec time to readable date format
+                    String readableTime = sdfReadableTime.format(currentDateTime); //convert to millisec time to readable time format
+                    //Structure: <Time In Millisec>;<Location Lat.>,<Location Long.>;<Blobo pressure>,<Threshold pressure>;<Date>;<Time>
+                    out.write(currentTimeInMillies + ";" + data + ";" + pressure + ":" + threshold + ";" + readableDate + ";" + readableTime +"\n");
                     out.close();
                 }
             } catch (IOException e) {
@@ -651,20 +657,20 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
         Thread thread = new Thread() {
             @Override
             public void run() {
+                long pattern[] = {0, 300, 200, 300, 200, 300, 0};
+                vibrate(pattern);
+
                 //Toast.makeText(getApplicationContext(), getString(R.string.long_squeeze) + " triggered!", Toast.LENGTH_SHORT).show();
                 try {
                     //wait for location update
                     while (currentLocation == null) {
-                        sleep(500);
+                        sleep(100);
                     }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
 
                 saveTimeAndLocationToFile(System.currentTimeMillis(), currentLocation.getLatitude() + "," + currentLocation.getLongitude(), ((int) pressure) + "", ((int) thresholdPressure) + "");
-
-                long pattern[] = {0, 300, 200, 300, 200, 300, 0};
-                vibrate(pattern);
 
                 //stop update after a location is received
                 stopPeriodicUpdates();
