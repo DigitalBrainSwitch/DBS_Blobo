@@ -452,8 +452,8 @@ public class BluetoothChatService {
                     write(send);
                     */
 
-                    //Send a byte every 500 packets received to keep the connection alive
-                    if(COUNT > 500){
+                    //Send a byte every 200 packets received to keep the connection alive
+                    if(COUNT > 200){
                         byte[] send = {13}; //fastest signal rate char(13) = 'D'. 'A' is the slowest.
                         write(send);
                         COUNT = 0;

@@ -96,6 +96,9 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
     public static double thresholdPressure = 22000;
     public static int longSqueezeDuration = 3; //3 seconds
 
+    public static double calibrationMark = -1;
+    public static int calibrationDifference = 80;
+
     //Moving average smooth filter
     private SimpleMovingAveragesSmoothing SMAFilter;
 
@@ -533,8 +536,14 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
 //            seconds = seconds % 60;
 //            currentSecond++;
 
+            //Initialize the calibrationMark value
+            if(calibrationMark==-1)
+                calibrationMark = pressure;
+
             //prolonged squeeze of at least <longSqueezeDuration> seconds application logic
-            if (pressure > thresholdPressure) {
+            //if (pressure > thresholdPressure)
+            if((int)pressure - (int) calibrationMark > calibrationDifference)
+            {
                 longSqueezeCounter++;
 
                 if (longSqueezeCounter == longSqueezeDuration) {

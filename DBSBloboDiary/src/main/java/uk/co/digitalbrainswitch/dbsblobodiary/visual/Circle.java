@@ -39,8 +39,16 @@ public class Circle extends SurfaceView implements SurfaceHolder.Callback {
     public void colorize(Canvas canvas){
 
         if (MainActivity.pressure < 1) {paint.setColor(getResources().getColor(R.color.gray)); paintStroke.setColor(getResources().getColor(R.color.dark_gray));}
-        else if (MainActivity.pressure < MainActivity.thresholdPressure) {paintStroke.setColor(getResources().getColor(R.color.dbs_blue)); paint.setColor(getResources().getColor(R.color.gray));}//{paint.setColor(getResources().getColor(R.color.yellow_2)); paint.setStrokeWidth(30.0F); paint.setStyle(Paint.Style.STROKE);}
-        else if (MainActivity.pressure >= MainActivity.thresholdPressure) {paintStroke.setColor(getResources().getColor(R.color.yellow_2)); paint.setColor(getResources().getColor(R.color.green_1));}//{ paint.setColor(getResources().getColor(R.color.green_1)); paint.setStrokeWidth(30.0F); paint.setStyle(Paint.Style.FILL_AND_STROKE);}
+        else if ((int)MainActivity.pressure - (int)MainActivity.calibrationMark <= MainActivity.calibrationDifference) {paintStroke.setColor(getResources().getColor(R.color.dbs_blue)); paint.setColor(getResources().getColor(R.color.gray));}//{paint.setColor(getResources().getColor(R.color.yellow_2)); paint.setStrokeWidth(30.0F); paint.setStyle(Paint.Style.STROKE);}
+        else if ((int)MainActivity.pressure - (int)MainActivity.calibrationMark > MainActivity.calibrationDifference) {paintStroke.setColor(getResources().getColor(R.color.yellow_2)); paint.setColor(getResources().getColor(R.color.green_1));}//{ paint.setColor(getResources().getColor(R.color.green_1)); paint.setStrokeWidth(30.0F); paint.setStyle(Paint.Style.FILL_AND_STROKE);}
+
+
+
+//        else if (MainActivity.pressure < MainActivity.thresholdPressure) {paintStroke.setColor(getResources().getColor(R.color.dbs_blue)); paint.setColor(getResources().getColor(R.color.gray));}//{paint.setColor(getResources().getColor(R.color.yellow_2)); paint.setStrokeWidth(30.0F); paint.setStyle(Paint.Style.STROKE);}
+//        else if (MainActivity.pressure >= MainActivity.thresholdPressure) {paintStroke.setColor(getResources().getColor(R.color.yellow_2)); paint.setColor(getResources().getColor(R.color.green_1));}//{ paint.setColor(getResources().getColor(R.color.green_1)); paint.setStrokeWidth(30.0F); paint.setStyle(Paint.Style.FILL_AND_STROKE);}
+
+
+
 //        else if (MainActivity.pressure > 10000 && MainActivity.pressure <= 16600) paint.setColor(getResources().getColor(R.color.green_1));
 //        else if(MainActivity.pressure > 16600 && MainActivity.pressure <= 16700) paint.setColor(getResources().getColor(R.color.green_2));
 //        else if(MainActivity.pressure > 16700 && MainActivity.pressure <= 16800) paint.setColor(getResources().getColor(R.color.green_3));
