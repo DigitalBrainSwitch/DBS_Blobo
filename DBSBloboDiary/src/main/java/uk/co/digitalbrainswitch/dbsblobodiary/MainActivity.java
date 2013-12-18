@@ -546,23 +546,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
                 previousDate.setTime(System.currentTimeMillis());
             }
 
-            //Update calibrationMark
-            if(previousDate!=null)
-            {
-                Date newDate = new Date();
-                newDate.setTime(System.currentTimeMillis());
 
-                long diff = newDate.getTime() - previousDate.getTime();
-                //long diffSeconds = diff / 1000 % 60;
-                //long diffMinutes = diff / (60 * 1000) % 60;
-                long diffHours = diff / (60 * 60 * 1000);
-                //int diffInDays = (int) diff / (1000 * 60 * 60 * 24);
-
-                if(diffHours > 6)
-                {
-                    calibrationMark = pressure;
-                }
-            }//end if(previousDate!=nil)
 
 
 
@@ -576,8 +560,29 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
                     longSqueezeCounter = 0;
                     performAction();
                 }
-            } else {
+            } else
+            {
                 longSqueezeCounter = 0;
+
+                //Update calibrationMark value after 6 hours
+                if(previousDate!=null)
+                {
+                    Date newDate = new Date();
+                    newDate.setTime(System.currentTimeMillis());
+
+                    long diff = newDate.getTime() - previousDate.getTime();
+                    //long diffSeconds = diff / 1000 % 60;
+                    long diffMinutes = diff / (60 * 1000) % 60;
+                    long diffHours = diff / (60 * 60 * 1000);
+                    //int diffInDays = (int) diff / (1000 * 60 * 60 * 24);
+
+                    if(diffMinutes > 5)
+                    {
+                        calibrationMark = pressure;
+                        //System.out.println("new calibrationMark value="+ calibrationMark);
+                    }
+                }//end if(previousDate!=nil)
+
             }
 
             //start the timer
