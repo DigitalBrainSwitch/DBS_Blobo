@@ -99,6 +99,8 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
     public static double calibrationMark = -1;
     public static int calibrationDifference = 80;
 
+    public static Date previousDate;
+
     //Moving average smooth filter
     private SimpleMovingAveragesSmoothing SMAFilter;
 
@@ -538,7 +540,31 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
 
             //Initialize the calibrationMark value
             if(calibrationMark==-1)
+            {
                 calibrationMark = pressure;
+                previousDate = new Date();
+                previousDate.setTime(System.currentTimeMillis());
+            }
+
+            //Update calibrationMark
+            if(previousDate!=null)
+            {
+                Date newDate = new Date();
+                newDate.setTime(System.currentTimeMillis());
+
+                long diff = newDate.getTime() - previousDate.getTime();
+                //long diffSeconds = diff / 1000 % 60;
+                //long diffMinutes = diff / (60 * 1000) % 60;
+                long diffHours = diff / (60 * 60 * 1000);
+                //int diffInDays = (int) diff / (1000 * 60 * 60 * 24);
+
+                if(diffHours > 6)
+                {
+                    calibrationMark = pressure;
+                }
+            }//end if(previousDate!=nil)
+
+
 
             //prolonged squeeze of at least <longSqueezeDuration> seconds application logic
             //if (pressure > thresholdPressure)
