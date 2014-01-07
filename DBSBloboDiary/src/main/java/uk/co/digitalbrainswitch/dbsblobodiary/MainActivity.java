@@ -97,7 +97,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
     public static int longSqueezeDuration = 3; //3 seconds
 
     public static double calibrationMark = -1;
-    public static int calibrationDifference = 80;
+    public static int calibrationDifference = 200; //default 200. update from sensitivity shared preference.
 
     public static Date previousDate;
 
@@ -227,6 +227,8 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
                 getResources().getInteger(R.integer.pressure_threshold_default_value));
         longSqueezeDuration = sharedPref.getInt(getString(R.string.long_squeeze_duration),
                 getResources().getInteger(R.integer.long_squeeze_duration_default_value));
+        calibrationDifference = sharedPref.getInt(getString(R.string.sensitivity),
+                getResources().getInteger(R.integer.sensitivity_default_value));
 
         //performAction();
     }
@@ -542,12 +544,11 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
             if(calibrationMark==-1)
             {
                 calibrationMark = pressure;
+                thresholdPressure = calibrationMark;
                 previousDate = new Date();
                 previousDate.setTime(System.currentTimeMillis());
+                updateSharedPreference(); //also update the calibration value to the stored shared preferences
             }
-
-
-
 
 
             //prolonged squeeze of at least <longSqueezeDuration> seconds application logic
@@ -555,8 +556,9 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
             if((int)pressure - (int) calibrationMark > calibrationDifference)
             {
                 longSqueezeCounter++;
+                System.err.println(longSqueezeCounter);
+                if (longSqueezeCounter == (longSqueezeDuration*10)) { //longSqueezeDuration times 10 because timerHandler.postDelayed(this, 100) has been reduced from 1000 to 100
 
-                if (longSqueezeCounter == longSqueezeDuration) {
                     longSqueezeCounter = 0;
                     performAction();
                 }
@@ -579,6 +581,9 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
                     if(diffMinutes > 5)
                     {
                         calibrationMark = pressure;
+                        thresholdPressure = calibrationMark;
+                        updateSharedPreference(); //also update the calibration value to the stored shared preferences
+
                         //System.out.println("new calibrationMark value="+ calibrationMark);
                     }
                 }//end if(previousDate!=nil)
@@ -586,9 +591,16 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
             }
 
             //start the timer
-            timerHandler.postDelayed(this, 1000);
+            timerHandler.postDelayed(this, 100);
         }
     };
+
+    private void updateSharedPreference() {
+        SharedPreferences sharedPref = getDefaultSharedPreferences(getApplicationContext());
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putInt(getString(R.string.pressure_threshold), (int) thresholdPressure);
+        editor.commit();
+    }
 
     private void vibrate(long time) {
         Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);

@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/DBSBloboDiary/src/main/main.iml" filepath="$PROJECT_DIR$/DBSBloboDiary/src/main/main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/DBSBloboDiary/DBSBloboDiary.iml" filepath="$PROJECT_DIR$/DBSBloboDiary/DBSBloboDiary.iml" />
+      <module fileurl="file://$PROJECT_DIR$/DBSBloboDiaryProject.iml" filepath="$PROJECT_DIR$/DBSBloboDiaryProject.iml" />
     </modules>
   </component>
 </project>

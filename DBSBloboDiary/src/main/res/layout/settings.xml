@@ -20,39 +20,14 @@
 
             <LinearLayout
                 android:layout_width="fill_parent"
-                android:layout_height="fill_parent">
-
-                <TextView
-                    android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Minimum"
-                    android:id="@+id/tvSettingsMinimum"
-                    android:layout_gravity="left|center_vertical"
-                    android:textSize="@dimen/textview_font_size"
-                    android:layout_weight="1"
-                    android:paddingTop="10dp" />
-
-                <EditText
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/etSettingsMinimum"
-                    android:layout_gravity="left|center_vertical"
-                    android:numeric="integer"
-                    android:inputType="number"
-                    android:textSize="@dimen/textview_font_size"
-                    android:layout_weight="0.5" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
                 android:paddingTop="10dp">
 
                 <TextView
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
-                    android:text="Maximum"
-                    android:id="@+id/tvSettingsMaximum"
+                    android:text="Sensitivity"
+                    android:id="@+id/tvSettingsSensitivity"
                     android:layout_gravity="left|center_vertical"
                     android:paddingTop="10dp"
                     android:textSize="@dimen/textview_font_size"
@@ -61,7 +36,7 @@
                 <EditText
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
-                    android:id="@+id/etSettingsMaximum"
+                    android:id="@+id/etSettingsSensitivity"
                     android:layout_gravity="left|center_vertical"
                     android:numeric="integer"
                     android:inputType="number"

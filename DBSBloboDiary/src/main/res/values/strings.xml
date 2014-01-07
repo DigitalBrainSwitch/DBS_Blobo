@@ -65,10 +65,12 @@
     <string name="pin">Pin</string>
 
     <!-- Shared Preference Keys (for blobo threshold settings) -->
+    <string name="sensitivity">SHARE_PREFERENCES_SENSITIVITY</string>
     <string name="pressure_max">SHARE_PREFERENCES_PRESSURE_MAX</string>
     <string name="pressure_min">SHARE_PREFERENCES_PRESSURE_MIN</string>
     <string name="pressure_threshold">SHARE_PREFERENCES_PRESSURE_THRESHOLD</string>
     <string name="long_squeeze_duration">SHARE_PREFERENCES_LONG_SQUEEZE_DURATION</string>
+
     <string name="hello_world">Hello world!</string>
     <string name="long_squeeze">Long Squeeze</string>
 

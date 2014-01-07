@@ -21,7 +21,7 @@ public class SettingsActivity extends Activity implements View.OnClickListener {
 
     Typeface font;
 
-    EditText etSettingsMinimum, etSettingsMaximum, etSettingsThreshold, etSettingsLongSqueezeDuration;
+    EditText etSettingsSensitivity, etSettingsThreshold, etSettingsLongSqueezeDuration;
     Button bSettingsSave;
     SharedPreferences sharedPref;
 
@@ -36,9 +36,12 @@ public class SettingsActivity extends Activity implements View.OnClickListener {
 
     private void initialise() {
         Typeface font = ((MyApplication) getApplication()).getCustomTypeface();
-        TextView textView = (TextView) findViewById(R.id.tvSettingsMinimum);
-        textView.setTypeface(font);
-        textView = (TextView) findViewById(R.id.tvSettingsMaximum);
+        TextView textView;
+//        textView = (TextView) findViewById(R.id.tvSettingsMinimum);
+//        textView.setTypeface(font);
+//        textView = (TextView) findViewById(R.id.tvSettingsMaximum);
+//        textView.setTypeface(font);
+        textView = (TextView) findViewById(R.id.tvSettingsSensitivity);
         textView.setTypeface(font);
         textView = (TextView) findViewById(R.id.tvSettingsThreshold);
         textView.setTypeface(font);
@@ -47,28 +50,33 @@ public class SettingsActivity extends Activity implements View.OnClickListener {
 
         //Retrieve stored preferences' values
         sharedPref = getDefaultSharedPreferences(getApplicationContext());
-        int pressureMinimum = sharedPref.getInt(getString(R.string.pressure_min),
-                getResources().getInteger(R.integer.pressure_min_default_value));
-        int pressureMaximum = sharedPref.getInt(getString(R.string.pressure_max),
-                getResources().getInteger(R.integer.pressure_max_default_value));
+//        int pressureMinimum = sharedPref.getInt(getString(R.string.pressure_min),
+//                getResources().getInteger(R.integer.pressure_min_default_value));
+//        int pressureMaximum = sharedPref.getInt(getString(R.string.pressure_max),
+//                getResources().getInteger(R.integer.pressure_max_default_value));
+        int sensitivity = sharedPref.getInt(getString(R.string.sensitivity),
+                getResources().getInteger(R.integer.sensitivity_default_value));
         int pressureThreshold = sharedPref.getInt(getString(R.string.pressure_threshold),
                 getResources().getInteger(R.integer.pressure_threshold_default_value));
         int longSqueezeDuration = sharedPref.getInt(getString(R.string.long_squeeze_duration),
                 getResources().getInteger(R.integer.long_squeeze_duration_default_value));
 
         //Set font and set text from preferences
-        etSettingsMinimum = (EditText) findViewById(R.id.etSettingsMinimum);
-        etSettingsMinimum.setText(Integer.toString(pressureMinimum));
-        etSettingsMinimum.setTypeface(font);
-        etSettingsMaximum = (EditText) findViewById(R.id.etSettingsMaximum);
-        etSettingsMaximum.setText(Integer.toString(pressureMaximum));
-        etSettingsMaximum.setTypeface(font);
+//        etSettingsMinimum = (EditText) findViewById(R.id.etSettingsMinimum);
+//        etSettingsMinimum.setText(Integer.toString(pressureMinimum));
+//        etSettingsMinimum.setTypeface(font);
+//        etSettingsMaximum = (EditText) findViewById(R.id.etSettingsMaximum);
+//        etSettingsMaximum.setText(Integer.toString(pressureMaximum));
+//        etSettingsMaximum.setTypeface(font);
         etSettingsThreshold = (EditText) findViewById(R.id.etSettingsThreshold);
         etSettingsThreshold.setText(Integer.toString(pressureThreshold));
         etSettingsThreshold.setTypeface(font);
         etSettingsLongSqueezeDuration = (EditText) findViewById(R.id.etSettingsLongSqueezeDuration);
         etSettingsLongSqueezeDuration.setText(Integer.toString(longSqueezeDuration));
         etSettingsLongSqueezeDuration.setTypeface(font);
+        etSettingsSensitivity = (EditText) findViewById(R.id.etSettingsSensitivity);
+        etSettingsSensitivity.setText(Integer.toString(sensitivity));
+        etSettingsSensitivity.setTypeface(font);
 
         bSettingsSave = (Button) findViewById(R.id.bSettingsSave);
         bSettingsSave.setTypeface(font);
@@ -86,20 +94,27 @@ public class SettingsActivity extends Activity implements View.OnClickListener {
             case R.id.bSettingsSave:
                 //Set to shared preferences
                 SharedPreferences.Editor editor = sharedPref.edit();
-                int pressure_min_value, pressure_max_value, pressure_threshold_value, long_squeeze_duration_value;
+                int sensitivity_value, pressure_threshold_value, long_squeeze_duration_value;
 
                 //Check if value is integer. If not, display an alert dialog
-                try {
-                    pressure_min_value = Integer.parseInt(etSettingsMinimum.getText().toString());
-                } catch (NumberFormatException e) {
-                    showAlertMessage(getString(R.string.settings_error_title), "Please enter an integer number for Minimum");
-                    return;
-                }
+//                try {
+//                    pressure_min_value = Integer.parseInt(etSettingsMinimum.getText().toString());
+//                } catch (NumberFormatException e) {
+//                    showAlertMessage(getString(R.string.settings_error_title), "Please enter an integer number for Minimum");
+//                    return;
+//                }
+//
+//                try {
+//                    pressure_max_value = Integer.parseInt(etSettingsMaximum.getText().toString());
+//                } catch (NumberFormatException e) {
+//                    showAlertMessage(getString(R.string.settings_error_title), "Please enter an integer number for Maximum");
+//                    return;
+//                }
 
                 try {
-                    pressure_max_value = Integer.parseInt(etSettingsMaximum.getText().toString());
+                    sensitivity_value = Integer.parseInt(etSettingsSensitivity.getText().toString());
                 } catch (NumberFormatException e) {
-                    showAlertMessage(getString(R.string.settings_error_title), "Please enter an integer number for Maximum");
+                    showAlertMessage(getString(R.string.settings_error_title), "Please enter an integer number for Sensitivity");
                     return;
                 }
 
@@ -121,24 +136,25 @@ public class SettingsActivity extends Activity implements View.OnClickListener {
                     return;
                 }
 
-                if (pressure_min_value > pressure_max_value) {
-                    showAlertMessage(getString(R.string.settings_error_title), "Minimum must be smaller than Maximum");
-                    return;
-                }
-
-                if (pressure_min_value > pressure_threshold_value) {
-                    showAlertMessage(getString(R.string.settings_error_title), "Threshold must be bigger than Minimum");
-                    return;
-                }
-
-                if (pressure_threshold_value > pressure_max_value) {
-                    showAlertMessage(getString(R.string.settings_error_title), "Threshold must be smaller than Maximum");
-                    return;
-                }
+//                if (pressure_min_value > pressure_max_value) {
+//                    showAlertMessage(getString(R.string.settings_error_title), "Minimum must be smaller than Maximum");
+//                    return;
+//                }
+//
+//                if (pressure_min_value > pressure_threshold_value) {
+//                    showAlertMessage(getString(R.string.settings_error_title), "Threshold must be bigger than Minimum");
+//                    return;
+//                }
+//
+//                if (pressure_threshold_value > pressure_max_value) {
+//                    showAlertMessage(getString(R.string.settings_error_title), "Threshold must be smaller than Maximum");
+//                    return;
+//                }
 
                 //Write to preferences storage
-                editor.putInt(getString(R.string.pressure_min), pressure_min_value);
-                editor.putInt(getString(R.string.pressure_max), pressure_max_value);
+//                editor.putInt(getString(R.string.pressure_min), pressure_min_value);
+//                editor.putInt(getString(R.string.pressure_max), pressure_max_value);
+                editor.putInt(getString(R.string.sensitivity), sensitivity_value);
                 editor.putInt(getString(R.string.pressure_threshold), pressure_threshold_value);
                 editor.putInt(getString(R.string.long_squeeze_duration), long_squeeze_duration_value);
                 editor.commit();
@@ -174,13 +190,4 @@ public class SettingsActivity extends Activity implements View.OnClickListener {
         b.setTypeface(font);
         b.setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen.textview_font_size));
     }
-
-
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        // Inflate the menu; this adds items to the action bar if it is present.
-//        getMenuInflater().inflate(R.menu.settings, menu);
-//        return true;
-//    }
-
 }
