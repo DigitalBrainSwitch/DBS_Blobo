@@ -32,6 +32,7 @@
     <!-- Directories -->
     <string name="stored_data_directory">/Download/DBSBloboDiary/eventdata</string>
     <string name="stored_diary_directory">/Download/DBSBloboDiary/diary</string>
+    <string name="stored_diary_values_directory">/Download/DBSBloboDiary/diaryvalues</string>
 
     <!-- About Text -->
     <string name="text_about">

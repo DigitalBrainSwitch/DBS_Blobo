@@ -12,6 +12,8 @@ import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.location.Location;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Activity;
@@ -91,8 +93,8 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
 
     //default blobo values and threshold
     public static float pressure = 0;
-    public static double maxPressure = 23500;
-    public static double minPressure = 10000;
+    public static double maxPressure = 25000;
+    public static double minPressure = 12000;
     public static double thresholdPressure = 22000;
     public static int longSqueezeDuration = 3; //3 seconds
 
@@ -219,10 +221,10 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
 
         //Update threshold values from shared preferences
         SharedPreferences sharedPref = getDefaultSharedPreferences(getApplicationContext());
-        minPressure = (double) sharedPref.getInt(getString(R.string.pressure_min),
-                getResources().getInteger(R.integer.pressure_min_default_value));
-        maxPressure = (double) sharedPref.getInt(getString(R.string.pressure_max),
-                getResources().getInteger(R.integer.pressure_max_default_value));
+//        minPressure = (double) sharedPref.getInt(getString(R.string.pressure_min),
+//                getResources().getInteger(R.integer.pressure_min_default_value));
+//        maxPressure = (double) sharedPref.getInt(getString(R.string.pressure_max),
+//                getResources().getInteger(R.integer.pressure_max_default_value));
         thresholdPressure = (double) sharedPref.getInt(getString(R.string.pressure_threshold),
                 getResources().getInteger(R.integer.pressure_threshold_default_value));
         longSqueezeDuration = sharedPref.getInt(getString(R.string.long_squeeze_duration),
@@ -252,7 +254,6 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
         super.onStop();
         if (D) Log.e(TAG, "-- ON STOP --");
     }
-
 
 
     @Override
@@ -320,7 +321,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
         startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE_INSECURE);
     }
 
-    private void showEvents(){
+    private void showEvents() {
         Intent intent = new Intent(this, ShowEventsActivity.class);
         startActivity(intent);
     }
@@ -405,6 +406,8 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
         mChatService.connect(device, secure);
     }
 
+    private static int pressureLogValueCounter = 0;
+
     // The Handler that gets information back from the BluetoothChatService
     private final Handler mHandler = new Handler() {
         @Override
@@ -430,6 +433,8 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
                             MainActivity.pressure = 0;
                             showNotification("Blobo Disconnected", "Blobo is not connected to DBS Diary");
                             SMAFilter.resetRecentData();
+                            calibrationMark = -1; //reset calibration mark when blobo is disconnected
+                            pressureLogValueCounter = 0;
                             break;
                     }
                     break;
@@ -441,46 +446,24 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
                     byte[] readBuf = (byte[]) msg.obj;
                     int numA = ((int) readBuf[1] & 0xff) + ((int) readBuf[0] & 0xff) * 256;
 
-                    if (numA > minPressure && numA < maxPressure) {
+                    if (numA > minPressure && numA < maxPressure) { //to remove noisy data
 
                         //setStatus(String.valueOf(numA));
                         pressure = numA;
                         prevPressure = pressure = SMAFilter.addMostRecentValue(pressure);
-                        //System.err.println(((Math.abs(numA - pressure) > 100) ? "YES" : "NO") + ": " + numA + " " + pressure);
                         //prevPressure = pressure = LowPassFilter.filter(prevPressure, pressure, 0.5f);
                         DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                         Calendar calendar = Calendar.getInstance();
-                        calendar.setTimeInMillis(System.currentTimeMillis());
+                        long systemTimeMillis = System.currentTimeMillis();
+                        calendar.setTimeInMillis(systemTimeMillis);
                         final String formattedTime = formatter.format(calendar.getTime());
                         tvDisplay.setText(String.valueOf((int) pressure) + "\t" + formattedTime);
-
-                        /*
-                        Thread threadOfValues = new Thread() {
-                            @Override
-                            public void run() {
-                                //unix time
-                                long unixTime = System.currentTimeMillis();
-
-                                //write values to external file
-                                String dataToWrite = String.valueOf((int) (pressure)) + "," + unixTime;
-                                //Log.i("SAVING", " - " + pressure);
-                                //saveValueToFile(dataToWrite);
-                                //tvDisplay.append(dataToWrite);
-
-                                try {
-                                    sleep(1000);
-                                } catch (InterruptedException e) {
-                                    e.printStackTrace();
-                                }
-
-                            }
-                        };
-                        threadOfValues.start();
-                        */
-                    } else {
-                        //Log.i("blobo out of range",String.valueOf(numA));
+                        pressureLogValueCounter++;
+                        if(pressureLogValueCounter == 10){ //logs every 10th value (not enough space to log every pressure value)
+                            savePressureValueToFile(systemTimeMillis, (int) pressure, (int) calibrationMark, calibrationDifference); //store blobo pressure values
+                            pressureLogValueCounter = 0;
+                        }
                     }
-
                     break;
                 case MESSAGE_DEVICE_NAME:
                     // save the connected device's name
@@ -502,7 +485,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
     };
 
 
-    private void showNotification(String title, String body){
+    private void showNotification(String title, String body) {
         Intent intent = new Intent(this, MainActivity.class);
         //set intent filter to be the same as android's launcher, so clicking on the notification resumes the paused state of the app
         //http://stackoverflow.com/questions/5502427/resume-application-and-stack-from-notification
@@ -520,7 +503,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
         nm.notify(uniqueID, n.build());
     }
 
-//    private int minutes, seconds;
+    //    private int minutes, seconds;
 //    private int currentSecond = 0;
 //    private int lastSecond = 0;
     public static int longSqueezeCounter = 0;
@@ -541,8 +524,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
 //            currentSecond++;
 
             //Initialize the calibrationMark value
-            if(calibrationMark==-1)
-            {
+            if (calibrationMark == -1 && pressure != 0) {
                 calibrationMark = pressure;
                 thresholdPressure = calibrationMark;
                 previousDate = new Date();
@@ -553,37 +535,34 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
 
             //prolonged squeeze of at least <longSqueezeDuration> seconds application logic
             //if (pressure > thresholdPressure)
-            if((int)pressure - (int) calibrationMark > calibrationDifference)
-            {
+            if ((int) pressure - (int) calibrationMark > calibrationDifference) {
                 longSqueezeCounter++;
-                System.err.println(longSqueezeCounter);
-                if (longSqueezeCounter == (longSqueezeDuration*10)) { //longSqueezeDuration times 10 because timerHandler.postDelayed(this, 100) has been reduced from 1000 to 100
-
+                if (longSqueezeCounter == (longSqueezeDuration * 10)) { //longSqueezeDuration times 10 because timerHandler.postDelayed(this, 100) has been reduced from 1000 to 100
                     longSqueezeCounter = 0;
                     performAction();
                 }
-            } else
-            {
+            } else {
                 longSqueezeCounter = 0;
 
                 //Update calibrationMark value after 6 hours
-                if(previousDate!=null)
-                {
+                if (previousDate != null) {
                     Date newDate = new Date();
                     newDate.setTime(System.currentTimeMillis());
 
                     long diff = newDate.getTime() - previousDate.getTime();
                     //long diffSeconds = diff / 1000 % 60;
-                    long diffMinutes = diff / (60 * 1000) % 60;
-                    long diffHours = diff / (60 * 60 * 1000);
+                    //long diffMinutes = diff / (60 * 1000) % 60;
+                    //long diffHours = diff / (60 * 60 * 1000);
                     //int diffInDays = (int) diff / (1000 * 60 * 60 * 24);
 
-                    if(diffMinutes > 5)
+                    //if(diffMinutes > 4) //calibration auto update every 5 minutes
+                    if (diff > 300000) //300000 ms = 5min
                     {
+                        System.err.println(diff);
                         calibrationMark = pressure;
                         thresholdPressure = calibrationMark;
                         updateSharedPreference(); //also update the calibration value to the stored shared preferences
-
+                        previousDate = newDate;
                         //System.out.println("new calibrationMark value="+ calibrationMark);
                     }
                 }//end if(previousDate!=nil)
@@ -602,6 +581,16 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
         editor.commit();
     }
 
+    private void audioAlert() {
+        try        {
+            Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+            Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notification);
+            r.play();
+        } catch (Exception e)
+        {
+        }
+
+    }
     private void vibrate(long time) {
         Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         v.vibrate(time);
@@ -612,6 +601,47 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
         v.vibrate(pattern, -1); //-1 to disable repeat
     }
 
+
+    private void savePressureValueToFile(long currentTimeInMillies, int pressure, int calibrationValue, int calibrationDiff){
+        File root = Environment.getExternalStorageDirectory();
+        //create directory if it does not exist
+        File folder = new File(root, getString(R.string.stored_diary_values_directory));
+        if (!folder.exists()) {
+            boolean success = folder.mkdirs();
+            if (!success) {
+                //showAlertMessage("Error", "Unable to create " + folder.getAbsolutePath());
+            }
+        }
+
+        String todayDateString = sdf.format(new Date());
+        //create file if it does not exist
+        File file = new File(folder, todayDateString + ".txt");
+        try {
+            if (!file.exists()) {
+                boolean success = file.createNewFile();
+                if (success) {
+                    //System.out.println("SUCCESS");
+                } else {
+                    //showAlertMessage("Error", "Unable to create " + file.getAbsolutePath());
+                    //System.out.println("FAILED");
+                }
+            }
+        } catch (IOException e) {
+            Log.e("TAG", "Could not write file " + e.getMessage());
+        }
+
+        try {
+            if (root.canWrite()) {
+                FileWriter filewriter = new FileWriter(file, true);
+                BufferedWriter out = new BufferedWriter(filewriter);
+                //Structure: <Time In Millisec>;<Blobo pressure>,<Threshold pressure>
+                out.write(currentTimeInMillies + ";" + pressure + ";" + calibrationValue + ";" + calibrationDiff + "\n");
+                out.close();
+            }
+        } catch (IOException e) {
+            Log.e("TAG", "Could not write file " + e.getMessage());
+        }
+    }
 
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_EEEE"); //e.g. 2013-10-14_Monday
 
@@ -657,7 +687,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
                     String readableDate = sdfReadableDate.format(currentDateTime); //convert to millisec time to readable date format
                     String readableTime = sdfReadableTime.format(currentDateTime); //convert to millisec time to readable time format
                     //Structure: <Time In Millisec>;<Location Lat.>,<Location Long.>;<Blobo pressure>,<Threshold pressure>;<Date>;<Time>
-                    out.write(currentTimeInMillies + ";" + data + ";" + pressure + ":" + threshold + ";" + readableDate + ";" + readableTime +"\n");
+                    out.write(currentTimeInMillies + ";" + data + ";" + pressure + ":" + threshold + ";" + readableDate + ";" + readableTime + "\n");
                     out.close();
                 }
             } catch (IOException e) {
@@ -711,6 +741,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
             public void run() {
                 long pattern[] = {0, 300, 200, 300, 200, 300, 0};
                 vibrate(pattern);
+                audioAlert();
 
                 //Toast.makeText(getApplicationContext(), getString(R.string.long_squeeze) + " triggered!", Toast.LENGTH_SHORT).show();
                 try {
@@ -742,7 +773,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
         tvTitle.setText(title);
         tvTitle.setTypeface(font);
         tvTitle.setTextColor(getResources().getColor(R.color.dbs_blue));
-        tvTitle.setPadding(30,20,30,20);
+        tvTitle.setPadding(30, 20, 30, 20);
         tvTitle.setTextSize(25);
         popupBuilder.setCustomTitle(tvTitle);
 
