@@ -225,8 +225,9 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
 //                getResources().getInteger(R.integer.pressure_min_default_value));
 //        maxPressure = (double) sharedPref.getInt(getString(R.string.pressure_max),
 //                getResources().getInteger(R.integer.pressure_max_default_value));
-        thresholdPressure = (double) sharedPref.getInt(getString(R.string.pressure_threshold),
-                getResources().getInteger(R.integer.pressure_threshold_default_value));
+        if (calibrationMark != -1)
+            calibrationMark = thresholdPressure = (double) sharedPref.getInt(getString(R.string.pressure_threshold),
+                    getResources().getInteger(R.integer.pressure_threshold_default_value));
         longSqueezeDuration = sharedPref.getInt(getString(R.string.long_squeeze_duration),
                 getResources().getInteger(R.integer.long_squeeze_duration_default_value));
         calibrationDifference = sharedPref.getInt(getString(R.string.sensitivity),
@@ -457,7 +458,9 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
                         long systemTimeMillis = System.currentTimeMillis();
                         calendar.setTimeInMillis(systemTimeMillis);
                         final String formattedTime = formatter.format(calendar.getTime());
-                        tvDisplay.setText(String.valueOf((int) pressure) + "\t" + formattedTime);
+                        tvDisplay.setText(String.valueOf((int) pressure) + "\t" + formattedTime
+                                + " | (" + (int)calibrationMark + ":" + calibrationDifference + ")"
+                        );
                         pressureLogValueCounter++;
                         if(pressureLogValueCounter == 10){ //logs every 10th value (not enough space to log every pressure value)
                             savePressureValueToFile(systemTimeMillis, (int) pressure, (int) calibrationMark, calibrationDifference); //store blobo pressure values
@@ -539,7 +542,8 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
                 longSqueezeCounter++;
                 if (longSqueezeCounter == (longSqueezeDuration * 10)) { //longSqueezeDuration times 10 because timerHandler.postDelayed(this, 100) has been reduced from 1000 to 100
                     longSqueezeCounter = 0;
-                    performAction();
+                    //########################################
+//                    performAction();
                 }
             } else {
                 longSqueezeCounter = 0;
@@ -554,12 +558,18 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
                     //long diffMinutes = diff / (60 * 1000) % 60;
                     //long diffHours = diff / (60 * 60 * 1000);
                     //int diffInDays = (int) diff / (1000 * 60 * 60 * 24);
-
+//                    System.err.println("DIFF: " + diff);
                     //if(diffMinutes > 4) //calibration auto update every 5 minutes
-                    if (diff > 300000) //300000 ms = 5min
+                    if (diff > 1000) //60000ms = 1min. 300000 ms = 5min.
                     {
-                        System.err.println(diff);
+                        double oldCalibrationMark = calibrationMark;
                         calibrationMark = pressure;
+                        if((oldCalibrationMark - calibrationMark) > calibrationDifference){
+                            System.err.print((int) oldCalibrationMark + " " + (int) calibrationMark);
+//                            //revert back to the previous calibration mark
+                            calibrationMark = (oldCalibrationMark + calibrationMark) / 2;
+                            System.err.print(" " + (int) calibrationMark + "\n");
+                        }
                         thresholdPressure = calibrationMark;
                         updateSharedPreference(); //also update the calibration value to the stored shared preferences
                         previousDate = newDate;
@@ -582,7 +592,8 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
     }
 
     private void audioAlert() {
-        try        {
+        try
+        {
             Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
             Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notification);
             r.play();
