@@ -11,12 +11,30 @@
     <ScrollView
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/scrollView" >
+        android:id="@+id/scrollView">
 
         <LinearLayout
             android:orientation="vertical"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:paddingTop="10dp">
+
+                <Switch
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Calibration Test"
+                    android:id="@+id/sCalibrationTest"
+                    android:layout_gravity="left|center_vertical"
+                    android:paddingTop="10dp"
+                    android:textSize="@dimen/textview_font_size"
+                    android:textColor="@color/gray"
+                    android:button="@color/yellow_8"
+                    android:checked="false" />
+            </LinearLayout>
 
             <LinearLayout
                 android:layout_width="fill_parent"

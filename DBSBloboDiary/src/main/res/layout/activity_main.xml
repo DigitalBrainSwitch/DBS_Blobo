@@ -7,16 +7,14 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent">
 
-        <LinearLayout
-            xmlns:android="http://schemas.android.com/apk/res/android"
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:tools="http://schemas.android.com/tools"
             android:orientation="horizontal"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
             tools:context=".MainActivity"
             android:id="@+id/graph"
-            android:layout_gravity="center">
-        </LinearLayout>
+            android:layout_gravity="center"></LinearLayout>
 
         <ImageView
             android:layout_width="100dp"
@@ -45,11 +43,25 @@
                 android:textSize="@dimen/textview_font_size"
                 android:layout_gravity="left|top" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/tvMainDisplay"
-                android:text="@string/no_pressure_value" />
+            <FrameLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/tvMainDisplay"
+                    android:text="@string/no_pressure_value"
+                    android:layout_gravity="left" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/tvCalibrationTestDisplay"
+                    android:textColor="@android:color/white"
+                    android:layout_gravity="right"
+                    android:gravity="right" />
+
+            </FrameLayout>
         </LinearLayout>
 
     </FrameLayout>

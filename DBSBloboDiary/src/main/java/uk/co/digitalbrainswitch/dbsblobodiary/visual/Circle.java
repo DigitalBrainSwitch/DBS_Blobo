@@ -41,8 +41,8 @@ public class Circle extends SurfaceView implements SurfaceHolder.Callback {
         if (MainActivity.pressure < 1) {paint.setColor(getResources().getColor(R.color.gray)); paintStroke.setColor(getResources().getColor(R.color.dark_gray));}
         else if ((int)MainActivity.pressure - (int)MainActivity.calibrationMark <= MainActivity.calibrationDifference) {paintStroke.setColor(getResources().getColor(R.color.dbs_blue)); paint.setColor(getResources().getColor(R.color.gray));}//{paint.setColor(getResources().getColor(R.color.yellow_2)); paint.setStrokeWidth(30.0F); paint.setStyle(Paint.Style.STROKE);}
         else if ((int)MainActivity.pressure - (int)MainActivity.calibrationMark > MainActivity.calibrationDifference) {paintStroke.setColor(getResources().getColor(R.color.yellow_2)); paint.setColor(getResources().getColor(R.color.green_1));}//{ paint.setColor(getResources().getColor(R.color.green_1)); paint.setStrokeWidth(30.0F); paint.setStyle(Paint.Style.FILL_AND_STROKE);}
-
-
+        if (MainActivity.eventDetected) {paintStroke.setColor(getResources().getColor(R.color.pink)); paint.setColor(getResources().getColor(R.color.dbs_blue));}
+        //paintStroke.setColor(getResources().getColor(R.color.gray)); paint.setColor(getResources().getColor(R.color.dbs_blue));
 
 //        else if (MainActivity.pressure < MainActivity.thresholdPressure) {paintStroke.setColor(getResources().getColor(R.color.dbs_blue)); paint.setColor(getResources().getColor(R.color.gray));}//{paint.setColor(getResources().getColor(R.color.yellow_2)); paint.setStrokeWidth(30.0F); paint.setStyle(Paint.Style.STROKE);}
 //        else if (MainActivity.pressure >= MainActivity.thresholdPressure) {paintStroke.setColor(getResources().getColor(R.color.yellow_2)); paint.setColor(getResources().getColor(R.color.green_1));}//{ paint.setColor(getResources().getColor(R.color.green_1)); paint.setStrokeWidth(30.0F); paint.setStyle(Paint.Style.FILL_AND_STROKE);}

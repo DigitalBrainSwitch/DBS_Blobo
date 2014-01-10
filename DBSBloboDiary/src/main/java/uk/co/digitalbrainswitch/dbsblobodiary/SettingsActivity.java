@@ -2,27 +2,33 @@ package uk.co.digitalbrainswitch.dbsblobodiary;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.app.Activity;
+import android.util.Log;
 import android.util.TypedValue;
+import android.view.DragEvent;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import static android.preference.PreferenceManager.getDefaultSharedPreferences;
 
-public class SettingsActivity extends Activity implements View.OnClickListener {
+public class SettingsActivity extends Activity implements View.OnClickListener, CompoundButton.OnCheckedChangeListener {
 
     Typeface font;
 
     EditText etSettingsSensitivity, etSettingsThreshold, etSettingsLongSqueezeDuration;
     Button bSettingsSave;
+    Switch sCalibrationTest;
     SharedPreferences sharedPref;
 
 
@@ -60,6 +66,8 @@ public class SettingsActivity extends Activity implements View.OnClickListener {
                 getResources().getInteger(R.integer.pressure_threshold_default_value));
         int longSqueezeDuration = sharedPref.getInt(getString(R.string.long_squeeze_duration),
                 getResources().getInteger(R.integer.long_squeeze_duration_default_value));
+        boolean calibrationTest = sharedPref.getBoolean(getString(R.string.calibration_test),
+                getResources().getBoolean(R.bool.calibration_test_default_value));
 
         //Set font and set text from preferences
 //        etSettingsMinimum = (EditText) findViewById(R.id.etSettingsMinimum);
@@ -81,6 +89,21 @@ public class SettingsActivity extends Activity implements View.OnClickListener {
         bSettingsSave = (Button) findViewById(R.id.bSettingsSave);
         bSettingsSave.setTypeface(font);
         bSettingsSave.setOnClickListener(this);
+
+        sCalibrationTest = (Switch) findViewById(R.id.sCalibrationTest);
+        sCalibrationTest.setTypeface(font);
+        sCalibrationTest.setChecked(calibrationTest);
+//        sCalibrationTest.setOnClickListener(this);
+        sCalibrationTest.setOnCheckedChangeListener(this);
+
+        if(sCalibrationTest.isChecked()){
+            sCalibrationTest.setTextColor(getResources().getColor(R.color.yellow_8));
+            sCalibrationTest.setThumbResource(R.color.yellow_8);
+        }
+        else{
+            sCalibrationTest.setTextColor(getResources().getColor(R.color.gray));
+            sCalibrationTest.setThumbResource(R.color.gray);
+        }
 
         //Check http://xjaphx.wordpress.com/2011/09/20/colorizing-the-title-bar/ for changing title bar
         TextView titleBar = (TextView) getWindow().findViewById(android.R.id.title);
@@ -166,6 +189,50 @@ public class SettingsActivity extends Activity implements View.OnClickListener {
         }
     }
 
+    private void showAlertMessageWithConfirmation(String title, String Message) {
+        AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+        dialog.setTitle(title);
+        dialog.setMessage(Message);
+        dialog.setCancelable(false);
+        dialog.setPositiveButton("Continue", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int buttonId) {
+                SharedPreferences.Editor editor = sharedPref.edit();
+                editor.putBoolean(getString(R.string.calibration_test), sCalibrationTest.isChecked());
+                editor.commit();
+            }
+        });
+        dialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int buttonId) {
+                //reset checked status back to false
+                sCalibrationTest.setChecked(false);
+                if(sCalibrationTest.isChecked()){
+                    sCalibrationTest.setTextColor(getResources().getColor(R.color.yellow_8));
+                    sCalibrationTest.setThumbResource(R.color.yellow_8);
+                }
+                else{
+                    sCalibrationTest.setTextColor(getResources().getColor(R.color.gray));
+                    sCalibrationTest.setThumbResource(R.color.gray);
+                }
+                SharedPreferences.Editor editor = sharedPref.edit();
+                editor.putBoolean(getString(R.string.calibration_test), sCalibrationTest.isChecked());
+                editor.commit();
+            }
+        });
+//        dialog.setIcon(R.drawable.ic_dialog_map);
+        dialog.setIcon(android.R.drawable.ic_dialog_alert);
+        AlertDialog ad = dialog.show();
+        TextView tv = (TextView) ad.findViewById(android.R.id.message);
+        tv.setTypeface(font);
+        tv.setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen.textview_font_size));
+        Button b = (Button) ad.findViewById(android.R.id.button1);
+        b.setTypeface(font);
+        b.setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen.textview_font_size));
+        b.setTextColor(getResources().getColor(R.color.dbs_blue));
+        b = (Button) ad.findViewById(android.R.id.button2);
+        b.setTypeface(font);
+        b.setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen.textview_font_size));
+    }
+
     //Method for displaying a popup alert dialog
     private void showAlertMessage(String title, String Message) {
         AlertDialog.Builder popupBuilder = new AlertDialog.Builder(this);
@@ -189,5 +256,28 @@ public class SettingsActivity extends Activity implements View.OnClickListener {
         Button b = (Button) ad.findViewById(android.R.id.button1);
         b.setTypeface(font);
         b.setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen.textview_font_size));
+    }
+
+    @Override
+    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+        switch (buttonView.getId()){
+            case R.id.sCalibrationTest:
+                if(sCalibrationTest.isChecked()){
+                    showAlertMessageWithConfirmation("Warning!", "No data will be recorded when Calibration Test is ON.");
+                    sCalibrationTest.setTextColor(getResources().getColor(R.color.yellow_8));
+                    sCalibrationTest.setThumbResource(R.color.yellow_8);
+                }
+                else{
+                    sCalibrationTest.setTextColor(getResources().getColor(R.color.gray));
+                    sCalibrationTest.setThumbResource(R.color.gray);
+
+                    SharedPreferences.Editor editor = sharedPref.edit();
+                    editor.putBoolean(getString(R.string.calibration_test), sCalibrationTest.isChecked());
+                    editor.commit();
+                }
+                break;
+            default:
+                break;
+        }
     }
 }

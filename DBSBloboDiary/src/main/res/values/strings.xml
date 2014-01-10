@@ -71,6 +71,7 @@
     <string name="pressure_min">SHARE_PREFERENCES_PRESSURE_MIN</string>
     <string name="pressure_threshold">SHARE_PREFERENCES_PRESSURE_THRESHOLD</string>
     <string name="long_squeeze_duration">SHARE_PREFERENCES_LONG_SQUEEZE_DURATION</string>
+    <string name="calibration_test">SHARE_PREFERENCES_CALIBRATION_TEST</string>
 
     <string name="hello_world">Hello world!</string>
     <string name="long_squeeze">Long Squeeze</string>

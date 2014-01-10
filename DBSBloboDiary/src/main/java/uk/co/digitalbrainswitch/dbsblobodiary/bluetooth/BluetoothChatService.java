@@ -47,8 +47,9 @@ public class BluetoothChatService {
 
     /**
      * Constructor. Prepares a new BluetoothChat session.
-     * @param context  The UI Activity Context
-     * @param handler  A Handler to send messages back to the UI Activity
+     *
+     * @param context The UI Activity Context
+     * @param handler A Handler to send messages back to the UI Activity
      */
     public BluetoothChatService(Context context, Handler handler) {
         mAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -58,7 +59,8 @@ public class BluetoothChatService {
 
     /**
      * Set the current state of the chat connection
-     * @param state  An integer defining the current connection state
+     *
+     * @param state An integer defining the current connection state
      */
     private synchronized void setState(int state) {
         if (D) Log.d(TAG, "setState() " + mState + " -> " + state);
@@ -69,22 +71,30 @@ public class BluetoothChatService {
     }
 
     /**
-     * Return the current connection state. */
+     * Return the current connection state.
+     */
     public synchronized int getState() {
         return mState;
     }
 
     /**
      * Start the chat service. Specifically start AcceptThread to begin a
-     * session in listening (server) mode. Called by the Activity onResume() */
+     * session in listening (server) mode. Called by the Activity onResume()
+     */
     public synchronized void start() {
         if (D) Log.d(TAG, "start");
 
         // Cancel any thread attempting to make a connection
-        if (mConnectThread != null) {mConnectThread.cancel(); mConnectThread = null;}
+        if (mConnectThread != null) {
+            mConnectThread.cancel();
+            mConnectThread = null;
+        }
 
         // Cancel any thread currently running a connection
-        if (mConnectedThread != null) {mConnectedThread.cancel(); mConnectedThread = null;}
+        if (mConnectedThread != null) {
+            mConnectedThread.cancel();
+            mConnectedThread = null;
+        }
 
         setState(STATE_LISTEN);
 
@@ -101,7 +111,8 @@ public class BluetoothChatService {
 
     /**
      * Start the ConnectThread to initiate a connection to a remote device.
-     * @param device  The BluetoothDevice to connect
+     *
+     * @param device The BluetoothDevice to connect
      * @param secure Socket Security type - Secure (true) , Insecure (false)
      */
     public synchronized void connect(BluetoothDevice device, boolean secure) {
@@ -109,11 +120,17 @@ public class BluetoothChatService {
 
         // Cancel any thread attempting to make a connection
         if (mState == STATE_CONNECTING) {
-            if (mConnectThread != null) {mConnectThread.cancel(); mConnectThread = null;}
+            if (mConnectThread != null) {
+                mConnectThread.cancel();
+                mConnectThread = null;
+            }
         }
 
         // Cancel any thread currently running a connection
-        if (mConnectedThread != null) {mConnectedThread.cancel(); mConnectedThread = null;}
+        if (mConnectedThread != null) {
+            mConnectedThread.cancel();
+            mConnectedThread = null;
+        }
 
         // Start the thread to connect with the given device
         mConnectThread = new ConnectThread(device, secure);
@@ -123,18 +140,25 @@ public class BluetoothChatService {
 
     /**
      * Start the ConnectedThread to begin managing a Bluetooth connection
-     * @param socket  The BluetoothSocket on which the connection was made
-     * @param device  The BluetoothDevice that has been connected
+     *
+     * @param socket The BluetoothSocket on which the connection was made
+     * @param device The BluetoothDevice that has been connected
      */
     public synchronized void connected(BluetoothSocket socket, BluetoothDevice
             device, final String socketType) {
         if (D) Log.d(TAG, "connected, Socket Type:" + socketType);
 
         // Cancel the thread that completed the connection
-        if (mConnectThread != null) {mConnectThread.cancel(); mConnectThread = null;}
+        if (mConnectThread != null) {
+            mConnectThread.cancel();
+            mConnectThread = null;
+        }
 
         // Cancel any thread currently running a connection
-        if (mConnectedThread != null) {mConnectedThread.cancel(); mConnectedThread = null;}
+        if (mConnectedThread != null) {
+            mConnectedThread.cancel();
+            mConnectedThread = null;
+        }
 
         // Cancel the accept thread because we only want to connect to one device
         if (mSecureAcceptThread != null) {
@@ -195,6 +219,7 @@ public class BluetoothChatService {
 
     /**
      * Write to the ConnectedThread in an unsynchronized manner
+     *
      * @param out The bytes to write
      * @see ConnectedThread#write(byte[])
      */
@@ -252,7 +277,7 @@ public class BluetoothChatService {
 
         public AcceptThread(boolean secure) {
             BluetoothServerSocket tmp = null;
-            mSocketType = secure ? "Secure":"Insecure";
+            mSocketType = secure ? "Secure" : "Insecure";
 
             // Create a new listening server socket
             try {
@@ -432,13 +457,13 @@ public class BluetoothChatService {
             while (true) {
                 try {
 
-                    bytes = mmInStream.read(buffer, 0, BUFFER_SIZE-1);
+                    bytes = mmInStream.read(buffer, 0, BUFFER_SIZE - 1);
 
 
-                    int numA = ((int)buffer[1] & 0xff) + ((int)buffer[0] & 0xff) *256;
+                    int numA = ((int) buffer[1] & 0xff) + ((int) buffer[0] & 0xff) * 256;
 
-                    if (numA == 65 ){
-                        byte[] pres = {buffer[17],buffer[16]}; //bytes 16 and 17 are for pressure (P_LSB, P_MSB)
+                    if (numA == 65) {
+                        byte[] pres = {buffer[17], buffer[16]}; //bytes 16 and 17 are for pressure (P_LSB, P_MSB)
                         //accelerometers: 4 to 9 (A1_LSB, A1_MSB, A2_LSB, A2_MSB, ...)
                         //magnetometers: 10 to 15 (R1_LSB, R1_MSB, ...)
 
@@ -453,12 +478,12 @@ public class BluetoothChatService {
                     */
 
                     //Send a byte every 200 packets received to keep the connection alive
-                    if(COUNT > 200){
-                        byte[] send = {13}; //fastest signal rate char(13) = 'D'. 'A' is the slowest.
+                    if (COUNT > 200) {
+                        byte[] send = {13, 101, 102}; //fastest signal rate char(13) = 'D'. 'A' is the slowest.
                         write(send);
                         COUNT = 0;
-                    }else{
-                        COUNT ++;
+                    } else {
+                        COUNT++;
                     }
 
 
@@ -474,7 +499,8 @@ public class BluetoothChatService {
 
         /**
          * Write to the connected OutStream.
-         * @param buffer  The bytes to write
+         *
+         * @param buffer The bytes to write
          */
         public void write(byte[] buffer) {
             try {
