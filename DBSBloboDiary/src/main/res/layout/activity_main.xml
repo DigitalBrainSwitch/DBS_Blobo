@@ -53,14 +53,28 @@
                     android:id="@+id/tvMainDisplay"
                     android:text="@string/no_pressure_value"
                     android:layout_gravity="left" />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/tvCalibrationTestDisplay"
-                    android:textColor="@android:color/white"
-                    android:layout_gravity="right"
-                    android:gravity="right" />
 
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/tvCalibrationTestDisplay"
+                        android:textColor="@android:color/white"
+                        android:layout_gravity="right"
+                        android:gravity="right" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/tvCalibrationTestDisplay2"
+                        android:textColor="@android:color/white"
+                        android:layout_gravity="right"
+                        android:gravity="right" />
+                </LinearLayout>
             </FrameLayout>
         </LinearLayout>
 

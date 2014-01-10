@@ -453,6 +453,7 @@ public class BluetoothChatService {
             int pressure;
 
             int COUNT = 0;
+            int SEND_COUNT = 0;
             // Keep listening to the InputStream while connected
             while (true) {
                 try {
@@ -477,11 +478,20 @@ public class BluetoothChatService {
                     write(send);
                     */
 
-                    //Send a byte every 200 packets received to keep the connection alive
-                    if (COUNT > 200) {
-                        byte[] send = {13, 101, 102}; //fastest signal rate char(13) = 'D'. 'A' is the slowest.
-                        write(send);
+                    //Send bytes to blobo after every 75 packets received to keep the connection alive
+                    if (COUNT > 75) {
+                        if (SEND_COUNT % 20 == 0 || SEND_COUNT % 20 == 2) {
+                            byte[] send = {13, 70};
+                            write(send);
+                        } else {
+                            byte[] send = {13, 101, 102};
+                            write(send);
+                        }
+//                        byte[] send = {13, 101, 102}; //fastest signal rate char(13) = 'D'. 'A' is the slowest. 69 & 70 turn LED on. 101 & 102 turn LED off.
+//                        write(send);
+
                         COUNT = 0;
+                        SEND_COUNT++;
                     } else {
                         COUNT++;
                     }

@@ -35,10 +35,8 @@
     <string name="stored_diary_values_directory">/Download/DBSBloboDiary/diaryvalues</string>
 
     <!-- About Text -->
-    <string name="text_about">
-        Digital Brain Switch (DBS) is a project funded by the Engineering and Physical Sciences Research Council (EPSRC), which brings together computer science and social science. It is a collaboration between Lancaster University; The Open University; Royal Holloway, University of London; and University of Kent. The project is led by Prof. Jon Whittle from the School of Computing &amp; Communications at Lancaster University.
-        \n\nEmail: DBS-Project@open.ac.uk
-    </string>
+    <string name="text_about">        Digital Brain Switch (DBS) is a project funded by the Engineering and Physical Sciences Research Council (EPSRC), which brings together computer science and social science. It is a collaboration between Lancaster University; The Open University; Royal Holloway, University of London; and University of Kent. The project is led by Prof. Jon Whittle from the School of Computing &amp; Communications at Lancaster University.
+        \n\nEmail: DBS-Project@open.ac.uk</string>
     <string name="text_version">0.1</string>
 
     <!-- Settings -->
@@ -72,7 +70,6 @@
     <string name="pressure_threshold">SHARE_PREFERENCES_PRESSURE_THRESHOLD</string>
     <string name="long_squeeze_duration">SHARE_PREFERENCES_LONG_SQUEEZE_DURATION</string>
     <string name="calibration_test">SHARE_PREFERENCES_CALIBRATION_TEST</string>
-
     <string name="hello_world">Hello world!</string>
     <string name="long_squeeze">Long Squeeze</string>
 
@@ -89,7 +86,6 @@
     <string name="intent_extra_number_of_map_points">INTENT_EXTRA_NUMBER_OF_MAP_POINTS</string>
     <string name="multiple_map_points">MULTIPLE_MAP_POINTS</string>
     <string name="single_map_point">SINGLE_MAP_POINT</string>
-
     <string name="intent_extra_diary_entry_date">INTENT_EXTRA_DIARY_DATE</string>
     <string name="intent_extra_diary_entry_time">INTENT_EXTRA_DIARY_TIME</string>
     <string name="intent_extra_diary_entry_location">INTENT_EXTRA_DIARY_LOCATION</string>
@@ -99,24 +95,20 @@
     <string name="intent_extra_diary_entry_location_longitude">INTENT_EXTRA_DIARY_LOCATION_LONGITUDE</string>
     <string name="intent_extra_diary_entry_created_time">INTENT_EXTRA_DIARY_CREATED_TIME</string>
     <string name="intent_extra_disable_diary_in_map">INTENT_EXTRA_DISABLE_DIARY_IN_MAP</string>
-
-
-
     <string name="title_activity_reflection">DBS Diary</string>
     <string name="title_activity_view_an_event">View An Event Activity</string>
     <string name="title_activity_calendar_date_picker">Calendar Date Picker</string>
     <string name="title_activity_show_events">Show Events</string>
     <string name="title_activity_add_diary_entry">Diary Entry</string>
 
-    <!--Reflection Activity-->
+    <!-- Reflection Activity -->
     <string name="reflection_activity_view_entries">View Recorded Entries</string>
     <string name="reflection_activity_add_entry">Add A New General Entry</string>
 
-    <!--Add Diary Entry-->
+    <!-- Add Diary Entry -->
     <string name="add_diary_date_string">Date:</string>
     <string name="add_diary_time_string">Time:</string>
     <string name="add_diary_location_string">Address:</string>
-
     <string name="diary_data_key_date">DIARY_ENTRY_DATE</string>
     <string name="diary_data_key_time">DIARY_ENTRY_TIME</string>
     <string name="diary_data_key_location">DIARY_ENTRY_LOCATION</string>
@@ -125,13 +117,13 @@
     <string name="diary_data_key_content">DIARY_ENTRY_CONTENT</string>
     <string name="diary_data_key_created_time">DIARY_ENTRY_CREATED_TIME</string>
     <string name="diary_data_key_last_updated_time">DIARY_ENTRY_LAST_UPDATED_TIME</string>
-
     <string name="diary_button_add_string">Add Diary Entry</string>
     <string name="diary_button_update_string">Update Diary Entry</string>
-
     <string name="diary_empty_alert_title">Cannot Save Diary Entry</string>
     <string name="diary_empty_alert_message">Content of a diary cannot be empty. Please enter content.</string>
     <string name="diary_entry_empty_location_general_entry">General Entry - No Event Location.</string>
     <string name="diary_entry_empty_latitude">NO_LATITUDE</string>
     <string name="diary_entry_empty_longitude">NO_LONGITUDE</string>
+    <string name="title_activity_hidden_settings">Hidden Settings</string>
+
 </resources>

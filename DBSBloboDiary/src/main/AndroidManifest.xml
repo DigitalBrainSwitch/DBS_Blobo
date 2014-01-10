@@ -100,7 +100,11 @@
         <activity
             android:name="uk.co.digitalbrainswitch.dbsblobodiary.AddDiaryEntryActivity"
             android:label="@string/title_activity_add_diary_entry" >
-
+        </activity>
+        <activity
+            android:name="uk.co.digitalbrainswitch.dbsblobodiary.HiddenSettingsActivity"
+            android:label="@string/title_activity_hidden_settings"
+            android:theme="@android:style/Theme.Holo.Light.Dialog" >
         </activity>
     </application>
 

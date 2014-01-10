@@ -41,7 +41,7 @@ public class SettingsActivity extends Activity implements View.OnClickListener, 
     }
 
     private void initialise() {
-        Typeface font = ((MyApplication) getApplication()).getCustomTypeface();
+//        Typeface font = ((MyApplication) getApplication()).getCustomTypeface();
         TextView textView;
 //        textView = (TextView) findViewById(R.id.tvSettingsMinimum);
 //        textView.setTypeface(font);
@@ -96,11 +96,10 @@ public class SettingsActivity extends Activity implements View.OnClickListener, 
 //        sCalibrationTest.setOnClickListener(this);
         sCalibrationTest.setOnCheckedChangeListener(this);
 
-        if(sCalibrationTest.isChecked()){
+        if (sCalibrationTest.isChecked()) {
             sCalibrationTest.setTextColor(getResources().getColor(R.color.yellow_8));
             sCalibrationTest.setThumbResource(R.color.yellow_8);
-        }
-        else{
+        } else {
             sCalibrationTest.setTextColor(getResources().getColor(R.color.gray));
             sCalibrationTest.setThumbResource(R.color.gray);
         }
@@ -159,6 +158,11 @@ public class SettingsActivity extends Activity implements View.OnClickListener, 
                     return;
                 }
 
+                if (sensitivity_value < 1) {
+                    showAlertMessage(getString(R.string.settings_error_title), "Sensitivity must be bigger than 0");
+                    return;
+                }
+
 //                if (pressure_min_value > pressure_max_value) {
 //                    showAlertMessage(getString(R.string.settings_error_title), "Minimum must be smaller than Maximum");
 //                    return;
@@ -205,11 +209,10 @@ public class SettingsActivity extends Activity implements View.OnClickListener, 
             public void onClick(DialogInterface dialog, int buttonId) {
                 //reset checked status back to false
                 sCalibrationTest.setChecked(false);
-                if(sCalibrationTest.isChecked()){
+                if (sCalibrationTest.isChecked()) {
                     sCalibrationTest.setTextColor(getResources().getColor(R.color.yellow_8));
                     sCalibrationTest.setThumbResource(R.color.yellow_8);
-                }
-                else{
+                } else {
                     sCalibrationTest.setTextColor(getResources().getColor(R.color.gray));
                     sCalibrationTest.setThumbResource(R.color.gray);
                 }
@@ -260,14 +263,13 @@ public class SettingsActivity extends Activity implements View.OnClickListener, 
 
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-        switch (buttonView.getId()){
+        switch (buttonView.getId()) {
             case R.id.sCalibrationTest:
-                if(sCalibrationTest.isChecked()){
+                if (sCalibrationTest.isChecked()) {
                     showAlertMessageWithConfirmation("Warning!", "No data will be recorded when Calibration Test is ON.");
                     sCalibrationTest.setTextColor(getResources().getColor(R.color.yellow_8));
                     sCalibrationTest.setThumbResource(R.color.yellow_8);
-                }
-                else{
+                } else {
                     sCalibrationTest.setTextColor(getResources().getColor(R.color.gray));
                     sCalibrationTest.setThumbResource(R.color.gray);
 

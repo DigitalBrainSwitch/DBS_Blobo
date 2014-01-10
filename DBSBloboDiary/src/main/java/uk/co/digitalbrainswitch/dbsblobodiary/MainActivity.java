@@ -17,6 +17,7 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Activity;
+import android.os.CountDownTimer;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
@@ -28,6 +29,7 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -133,7 +135,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
     //UI Components
     TextView tvDisplay;
     TextView tvConnectionStatus;
-    TextView tvCalibrationTestDisplay;
+    TextView tvCalibrationTestDisplay, tvCalibrationTestDisplay2;
 
     //location variables
     private LocationRequest mLocationRequest;
@@ -149,6 +151,9 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
     public Location currentLocation = null;
 
     NotificationManager nm;
+
+    private static final long TAP_MAX_DELAY = 400L; //max delay in ms
+    private TapCounter tapCounter = new TapCounter(TAP_MAX_DELAY, TAP_MAX_DELAY);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -176,8 +181,10 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
         nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         nm.cancel(uniqueID);
 
-        SMAFilter = new SimpleMovingAveragesSmoothing(23); //windows size 23
+        SMAFilter = new SimpleMovingAveragesSmoothing(15); //windows size 23
     }
+
+    private int touch_counter = 0;
 
     private void initialise() {
         tvDisplay = (TextView) findViewById(R.id.tvMainDisplay);
@@ -186,15 +193,39 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
         tvConnectionStatus.setTypeface(font);
         tvCalibrationTestDisplay = (TextView) findViewById(R.id.tvCalibrationTestDisplay);
         tvCalibrationTestDisplay.setTypeface(font);
+        tvCalibrationTestDisplay2 = (TextView) findViewById(R.id.tvCalibrationTestDisplay2);
+        tvCalibrationTestDisplay2.setTypeface(font);
+
+        tvCalibrationTestDisplay.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        tapCounter.resetCounter();
+                        Log.e(TAG, "TOUCHED: " + ++touch_counter);
+                        if (touch_counter == 5) {
+                            vibrate(100);
+                            Toast.makeText(getApplicationContext(), "TOUCHED: " + touch_counter + ". Hidden Settings.", Toast.LENGTH_SHORT).show();
+                            showHiddenSettings();
+                        }
+                        break;
+                    default:
+                        break;
+                }
+                return false;
+            }
+        });
+
         tvCalibrationTestDisplay.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
                 eventCounter = 0;
-                tvCalibrationTestDisplay.setText(((calibrationTest)?"Cal_test Mode ON: " + eventCounter + "\t":""));
-                vibrate(300);
-                return true;
+                tvCalibrationTestDisplay.setText(((calibrationTest) ? "Cal_test Mode ON: " + eventCounter + "\t" : ""));
+                vibrate(200);
+                return false;
             }
         });
+
 
         // Create a new global location parameters object
         mLocationRequest = LocationRequest.create();
@@ -236,10 +267,10 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
 
         //Update threshold values from shared preferences
         SharedPreferences sharedPref = getDefaultSharedPreferences(getApplicationContext());
-//        minPressure = (double) sharedPref.getInt(getString(R.string.pressure_min),
-//                getResources().getInteger(R.integer.pressure_min_default_value));
-//        maxPressure = (double) sharedPref.getInt(getString(R.string.pressure_max),
-//                getResources().getInteger(R.integer.pressure_max_default_value));
+        minPressure = (double) sharedPref.getInt(getString(R.string.pressure_min),
+                getResources().getInteger(R.integer.pressure_min_default_value));
+        maxPressure = (double) sharedPref.getInt(getString(R.string.pressure_max),
+                getResources().getInteger(R.integer.pressure_max_default_value));
         if (calibrationMark != -1)
             calibrationMark = thresholdPressure = (double) sharedPref.getInt(getString(R.string.pressure_threshold),
                     getResources().getInteger(R.integer.pressure_threshold_default_value));
@@ -250,8 +281,13 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
         calibrationTest = sharedPref.getBoolean(getString(R.string.calibration_test),
                 getResources().getBoolean(R.bool.calibration_test_default_value));
 
-        tvCalibrationTestDisplay.setText(((calibrationTest)?"Cal_test Mode ON: " + eventCounter + "\t":""));
-        tvCalibrationTestDisplay.setBackgroundColor((calibrationTest)?getResources().getColor(R.color.yellow_8):getResources().getColor(android.R.color.transparent));
+        tvCalibrationTestDisplay.setEnabled(calibrationTest);
+        tvCalibrationTestDisplay.setText(((calibrationTest) ? "Cal_test Mode ON: " + eventCounter + "\t" : ""));
+        tvCalibrationTestDisplay.setBackgroundColor((calibrationTest) ? getResources().getColor(R.color.yellow_8) : getResources().getColor(android.R.color.transparent));
+        tvCalibrationTestDisplay2.setEnabled(calibrationTest);
+        tvCalibrationTestDisplay2.setText("");
+        tvCalibrationTestDisplay2.setBackgroundColor((calibrationTest) ? getResources().getColor(R.color.yellow_8) : getResources().getColor(android.R.color.transparent));
+
     }
 
     @Override
@@ -360,6 +396,10 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
         startActivity(intent);
     }
 
+    private void showHiddenSettings() {
+        Intent intent = new Intent(this, HiddenSettingsActivity.class);
+        startActivity(intent);
+    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -464,37 +504,41 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
                     //read from blobo device
                     byte[] readBuf = (byte[]) msg.obj;
                     int numA = ((int) readBuf[1] & 0xff) + ((int) readBuf[0] & 0xff) * 256;
+                    if(calibrationTest && numA < 10000)
+                        tvCalibrationTestDisplay2.setText(Integer.toString(numA));
 
-                    if (numA > minPressure && numA < maxPressure) { //to remove noisy data
+                    if (numA >= minPressure && numA < maxPressure) { //to remove noisy data
                         //apply low pass filter on numA
-                        prevNumA = numA = (int) LowPassFilter.filter((float)numA, (float)prevNumA, 0.5f);
-                        if(numA < 20000){
-                            Log.e(TAG, "numA: " + numA);
-                        }
-
-                        //apply simple moving average filter
-                        pressure = numA;
-                        pressure = SMAFilter.addMostRecentValue(pressure);
-                        if (Math.abs(prevPressure - pressure) > calibrationDifference) {
-                            Log.e(TAG, "" + (int) (prevPressure - pressure));
-                        }
-                        prevPressure = pressure;
-                        //prevPressure = pressure = LowPassFilter.filter(prevPressure, pressure, 0.5f);
-                        DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                        Calendar calendar = Calendar.getInstance();
-                        long systemTimeMillis = System.currentTimeMillis();
-                        calendar.setTimeInMillis(systemTimeMillis);
-                        final String formattedTime = formatter.format(calendar.getTime());
-                        tvDisplay.setText(String.valueOf((int) pressure) + "\t" + formattedTime
-                                + " | (" + (int) calibrationMark + ":" + calibrationDifference + ")"
+                        prevNumA = numA = (int) LowPassFilter.filter((float) numA, (float) prevNumA, 0.5f);
+                    } else if(numA < minPressure){
+                        break;
+//                        numA = (int) minPressure;
+//                        prevNumA = numA = (int) LowPassFilter.filter((float) numA, (float) prevNumA, 0.5f);
+                    } else {
+                        break;
+                    }
+                    //apply simple moving average filter
+                    pressure = numA;
+                    pressure = SMAFilter.addMostRecentValue(pressure);
+                    if (Math.abs(prevPressure - pressure) > calibrationDifference) {
+                        Log.e(TAG, "" + (int) (prevPressure - pressure));
+                    }
+                    prevPressure = pressure;
+                    //prevPressure = pressure = LowPassFilter.filter(prevPressure, pressure, 0.5f);
+                    DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                    Calendar calendar = Calendar.getInstance();
+                    long systemTimeMillis = System.currentTimeMillis();
+                    calendar.setTimeInMillis(systemTimeMillis);
+                    final String formattedTime = formatter.format(calendar.getTime());
+                    tvDisplay.setText(String.valueOf((int) pressure) + "\t" + formattedTime
+                            + " | (" + (int) calibrationMark + ":" + calibrationDifference + ")"
 //                                + "\t" + ((calibrationTest)?"Cal_test Mode":"")
-                        );
-                        if (!calibrationTest) {
-                            pressureLogValueCounter++;
-                            if (pressureLogValueCounter == 10) { //logs every 10th value (not enough space to log every pressure value)
-                                savePressureValueToFile(systemTimeMillis, (int) pressure, (int) calibrationMark, calibrationDifference); //store blobo pressure values
-                                pressureLogValueCounter = 0;
-                            }
+                    );
+                    if (!calibrationTest) {
+                        pressureLogValueCounter++;
+                        if (pressureLogValueCounter == 10) { //logs every 10th value (not enough space to log every pressure value)
+                            savePressureValueToFile(systemTimeMillis, (int) pressure, (int) calibrationMark, calibrationDifference); //store blobo pressure values
+                            pressureLogValueCounter = 0;
                         }
                     }
                     break;
@@ -557,8 +601,8 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
 //            currentSecond++;
 
             //Initialize the calibrationMark value
-            if (calibrationMark == -1 && pressure != 0) {
-                calibrationMark = pressure;
+            if (calibrationMark == -1) {
+                calibrationMark = maxPressure;
                 thresholdPressure = calibrationMark;
                 previousDate = new Date();
                 previousDate.setTime(System.currentTimeMillis());
@@ -594,6 +638,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
                         //########################################
                     } else {
                         vibrate(300);
+                        audioAlert();
                         tvCalibrationTestDisplay.setText("Cal_test Mode ON: " + ++eventCounter + "\t");
                     }
                     //recalibrate after 1.5 sec of a squeeze event
@@ -601,7 +646,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
                         @Override
                         public void run() {
                             try {
-                                sleep(1500);
+                                sleep(1000);
                                 recalibrate();
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
@@ -642,7 +687,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
     private void recalibrate() {
         double oldCalibrationMark = calibrationMark;
         calibrationMark = pressure;
-        if ((oldCalibrationMark - calibrationMark) > calibrationDifference) {
+        if ((calibrationMark - oldCalibrationMark) > calibrationDifference) {
             calibrationMark = (oldCalibrationMark + calibrationMark) / 2;
         }
         Log.e(TAG, "New CalibrationMark: " + (int) calibrationMark);
@@ -907,5 +952,33 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
     public void onLocationChanged(Location location) {
         Log.d(TAG, "Location Changed");
         currentLocation = location;
+    }
+
+    private class TapCounter extends CountDownTimer {
+
+        /**
+         * @param millisInFuture    The number of millis in the future from the call
+         *                          to {@link #start()} until the countdown is done and {@link #onFinish()}
+         *                          is called.
+         * @param countDownInterval The interval along the way to receive
+         *                          {@link #onTick(long)} callbacks.
+         */
+        public TapCounter(long millisInFuture, long countDownInterval) {
+            super(millisInFuture, countDownInterval);
+        }
+
+        @Override
+        public void onTick(long millisUntilFinished) {
+
+        }
+
+        @Override
+        public void onFinish() {
+            touch_counter = 0;
+        }
+
+        public void resetCounter() {
+            start();
+        }
     }
 }
