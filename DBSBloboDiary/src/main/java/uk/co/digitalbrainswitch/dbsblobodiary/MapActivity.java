@@ -3,6 +3,7 @@ package uk.co.digitalbrainswitch.dbsblobodiary;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -12,7 +13,10 @@ import android.os.Bundle;
 import android.app.Activity;
 import android.os.Environment;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdate;
@@ -51,6 +55,8 @@ public class MapActivity extends Activity implements GoogleMap.OnMarkerClickList
     //Mock up location: Lancaster 54.048606,-2.800511
     //Mock up location: Lancaster University 54.011653,-2.790509
 
+    Typeface font;
+
     private GoogleMap googleMap;
     TreeMap<Long, TimeLocation> data;
 
@@ -58,6 +64,9 @@ public class MapActivity extends Activity implements GoogleMap.OnMarkerClickList
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.map);
+
+        font = ((MyApplication) getApplication()).getCustomTypeface();
+        this.initialise();
 
         //Display the point on the map
         googleMap = ((MapFragment) getFragmentManager().findFragmentById(R.id.fShowMap)).getMap(); //get MapFragment from layout
@@ -73,6 +82,22 @@ public class MapActivity extends Activity implements GoogleMap.OnMarkerClickList
         } else if (numberOfPoint.compareTo(getString(R.string.single_map_point)) == 0) {
             initialiseSinglePointMap(bundle);
         }
+    }
+
+    private void initialise() {
+        //set custom title bar http://stackoverflow.com/a/8748802
+        this.getActionBar().setDisplayShowCustomEnabled(true);
+        this.getActionBar().setDisplayShowTitleEnabled(false);
+        LayoutInflater inflator = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View v = inflator.inflate(R.layout.titleview, null);
+        //if you need to customize anything else about the text, do it here.
+        //I'm using a custom TextView with a custom font in my layout xml so all I need to do is set title
+        TextView tvTitle = (TextView) v.findViewById(R.id.title);
+        tvTitle.setText(this.getTitle());
+        tvTitle.setTextColor(getResources().getColor(android.R.color.white));
+        tvTitle.setTypeface(font);
+        //assign the view to the actionbar
+        this.getActionBar().setCustomView(v);
     }
 
     @Override

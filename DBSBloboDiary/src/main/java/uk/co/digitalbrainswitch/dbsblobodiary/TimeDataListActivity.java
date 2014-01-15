@@ -30,6 +30,7 @@ public class TimeDataListActivity extends ListActivity {
     Typeface font;
 
     AdapterView.OnItemClickListener itemListener;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,11 +47,13 @@ public class TimeDataListActivity extends ListActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long l) {
                 //Use intent to start visualisation activity
-                Intent intent = new Intent(TimeDataListActivity.this, ShowTimeDataActivity.class);
                 String selectFileName = ((EventDateListModel) parent.getItemAtPosition(position)).getFileNameString();
-                intent.putExtra(getString(R.string.intent_extra_selected_file_name), selectFileName);
-                startActivity(intent);
-                //TimeDataListActivity.this.finish();
+                if (selectFileName != null) {
+                    Intent intent = new Intent(TimeDataListActivity.this, ShowTimeDataActivity.class);
+                    intent.putExtra(getString(R.string.intent_extra_selected_file_name), selectFileName);
+                    startActivity(intent);
+                }
+                TimeDataListActivity.this.finish();
             }
         };
     }
@@ -72,20 +75,25 @@ public class TimeDataListActivity extends ListActivity {
         File dataDir = new File(root, getString(R.string.stored_data_directory));
 
         ArrayList<EventDateListModel> fileNamesList = new ArrayList<EventDateListModel>();
-        for(File f : dataDir.listFiles()){
-            if(f.isFile()){
-                String fileName = f.getName();
-                String displayName = processFileNameForListDisplay(f.getName());
-                EventDateListModel item = new EventDateListModel(displayName, fileName);
-                fileNamesList.add(item);
+        if (dataDir.exists()) {
+            for (File f : dataDir.listFiles()) {
+                if (f.isFile()) {
+                    String fileName = f.getName();
+                    String displayName = processFileNameForListDisplay(f.getName());
+                    EventDateListModel item = new EventDateListModel(displayName, fileName);
+                    fileNamesList.add(item);
+                }
             }
+        } else {
+            EventDateListModel item = new EventDateListModel("No Record Found", null);
+            fileNamesList.add(item);
         }
         CustomListAdapter adapter = new CustomListAdapter(this, R.layout.time_data_list, fileNamesList);
 
         return adapter;
     }
 
-    private static String processFileNameForListDisplay(String fileName){
+    private static String processFileNameForListDisplay(String fileName) {
         return removeExtension(fileName).replaceAll("_", " ").replaceAll("-", "/");
     }
 
@@ -122,29 +130,26 @@ public class TimeDataListActivity extends ListActivity {
 
         private Context mContext;
         private int id;
-        private ArrayList<EventDateListModel> items ;
+        private ArrayList<EventDateListModel> items;
 
-        public CustomListAdapter(Context context, int textViewResourceId , ArrayList<EventDateListModel> list )
-        {
+        public CustomListAdapter(Context context, int textViewResourceId, ArrayList<EventDateListModel> list) {
             super(context, textViewResourceId, list);
             mContext = context;
             id = textViewResourceId;
-            items = list ;
+            items = list;
         }
 
         @Override
-        public View getView(int position, View v, ViewGroup parent)
-        {
-            View mView = v ;
-            if(mView == null){
-                LayoutInflater vi = (LayoutInflater)mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        public View getView(int position, View v, ViewGroup parent) {
+            View mView = v;
+            if (mView == null) {
+                LayoutInflater vi = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 mView = vi.inflate(id, null);
             }
 
             TextView text = (TextView) mView.findViewById(R.id.tvCustomListItem);
 
-            if(items.get(position) != null )
-            {
+            if (items.get(position) != null) {
                 text.setTypeface(font); //change font style
                 text.setText(items.get(position).getDateString());
             }

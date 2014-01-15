@@ -43,13 +43,14 @@ public class MapListActivity extends ListActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long l) {
                 //Use intent to start visualisation activity
-                Intent intent = new Intent(MapListActivity.this, MapActivity.class);
                 String selectFileName = ((EventDateListModel) parent.getItemAtPosition(position)).getFileNameString();
-                intent.putExtra(getString(R.string.intent_extra_selected_file_name), selectFileName);
-                intent.putExtra(getString(R.string.intent_extra_number_of_map_points), getString(R.string.multiple_map_points));
-
-                startActivity(intent);
-                //MapListActivity.this.finish();
+                if (selectFileName != null) {
+                    Intent intent = new Intent(MapListActivity.this, MapActivity.class);
+                    intent.putExtra(getString(R.string.intent_extra_selected_file_name), selectFileName);
+                    intent.putExtra(getString(R.string.intent_extra_number_of_map_points), getString(R.string.multiple_map_points));
+                    startActivity(intent);
+                }
+                MapListActivity.this.finish();
             }
         };
 
@@ -71,13 +72,18 @@ public class MapListActivity extends ListActivity {
         File dataDir = new File(root, getString(R.string.stored_data_directory));
 
         ArrayList<EventDateListModel> fileNamesList = new ArrayList<EventDateListModel>();
-        for (File f : dataDir.listFiles()) {
-            if (f.isFile()) {
-                String fileName = f.getName();
-                String displayName = processFileNameForListDisplay(f.getName());
-                EventDateListModel item = new EventDateListModel(displayName, fileName);
-                fileNamesList.add(item);
+        if (dataDir.exists()) {
+            for (File f : dataDir.listFiles()) {
+                if (f.isFile()) {
+                    String fileName = f.getName();
+                    String displayName = processFileNameForListDisplay(f.getName());
+                    EventDateListModel item = new EventDateListModel(displayName, fileName);
+                    fileNamesList.add(item);
+                }
             }
+        } else {
+            EventDateListModel item = new EventDateListModel("No Record Found", null);
+            fileNamesList.add(item);
         }
         CustomListAdapter adapter = new CustomListAdapter(this, R.layout.map_data_list, fileNamesList);
 
@@ -91,7 +97,7 @@ public class MapListActivity extends ListActivity {
 //        return true;
 //    }
 
-    private static String processFileNameForListDisplay(String fileName){
+    private static String processFileNameForListDisplay(String fileName) {
         return removeExtension(fileName).replaceAll("_", " ").replaceAll("-", "/");
     }
 

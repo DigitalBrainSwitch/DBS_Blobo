@@ -41,7 +41,7 @@ public class DeviceListActivity extends Activity {
 
     // Member fields
     private BluetoothAdapter mBtAdapter;
-    private ArrayAdapter<String> mPairedDevicesArrayAdapter;
+    //    private ArrayAdapter<String> mPairedDevicesArrayAdapter;
     private ArrayAdapter<String> mNewDevicesArrayAdapter;
 
     @Override
@@ -51,7 +51,7 @@ public class DeviceListActivity extends Activity {
         font = ((MyApplication) getApplication()).getCustomTypeface();
 
         // Setup the window
-        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+//        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         setContentView(R.layout.device_list);
 
         TextView titleBar = (TextView) getWindow().findViewById(android.R.id.title);
@@ -71,13 +71,13 @@ public class DeviceListActivity extends Activity {
 
         // Initialize array adapters. One for already paired devices and
         // one for newly discovered devices
-        mPairedDevicesArrayAdapter = new ArrayAdapter<String>(this, R.layout.device_name);
+//        mPairedDevicesArrayAdapter = new ArrayAdapter<String>(this, R.layout.device_name);
         mNewDevicesArrayAdapter = new ArrayAdapter<String>(this, R.layout.device_name);
 
         // Find and set up the ListView for paired devices
-        ListView pairedListView = (ListView) findViewById(R.id.paired_devices);
-        pairedListView.setAdapter(mPairedDevicesArrayAdapter);
-        pairedListView.setOnItemClickListener(mDeviceClickListener);
+//        ListView pairedListView = (ListView) findViewById(R.id.paired_devices);
+//        pairedListView.setAdapter(mPairedDevicesArrayAdapter);
+//        pairedListView.setOnItemClickListener(mDeviceClickListener);
 
         // Find and set up the ListView for newly discovered devices
         ListView newDevicesListView = (ListView) findViewById(R.id.new_devices);
@@ -96,18 +96,18 @@ public class DeviceListActivity extends Activity {
         mBtAdapter = BluetoothAdapter.getDefaultAdapter();
 
         // Get a set of currently paired devices
-        Set<BluetoothDevice> pairedDevices = mBtAdapter.getBondedDevices();
+//        Set<BluetoothDevice> pairedDevices = mBtAdapter.getBondedDevices();
 
         // If there are paired devices, add each one to the ArrayAdapter
-        if (pairedDevices.size() > 0) {
-            findViewById(R.id.title_paired_devices).setVisibility(View.VISIBLE);
-            for (BluetoothDevice device : pairedDevices) {
-                mPairedDevicesArrayAdapter.add(device.getName() + "\n" + device.getAddress());
-            }
-        } else {
-            String noDevices = getResources().getText(R.string.none_paired).toString();
-            mPairedDevicesArrayAdapter.add(noDevices);
-        }
+//        if (pairedDevices.size() > 0) {
+//            findViewById(R.id.title_paired_devices).setVisibility(View.VISIBLE);
+//            for (BluetoothDevice device : pairedDevices) {
+//                mPairedDevicesArrayAdapter.add(device.getName() + "\n" + device.getAddress());
+//            }
+//        } else {
+//            String noDevices = getResources().getText(R.string.none_paired).toString();
+//            mPairedDevicesArrayAdapter.add(noDevices);
+//        }
     }
 
     @Override
@@ -159,6 +159,14 @@ public class DeviceListActivity extends Activity {
 
             // Get the device MAC address, which is the last 17 chars in the View
             String info = ((TextView) v).getText().toString();
+
+            //If the user selects "No devices found", the activity exits without returning an intent with result
+            String NO_DEVICES = getResources().getText(R.string.none_found).toString();
+            if(info.compareTo(NO_DEVICES) == 0){
+                Log.e("DBS BLOBO DIARY (BT Discovery)", NO_DEVICES);
+                finish();
+                return;
+            }
             String address = info.substring(info.length() - 17);
 
             // Create the result Intent and include the MAC address
@@ -191,6 +199,7 @@ public class DeviceListActivity extends Activity {
                 setProgressBarIndeterminateVisibility(false);
                 setTitle(R.string.select_device);
                 if (mNewDevicesArrayAdapter.getCount() == 0) {
+                    setTitle(R.string.none_found);
                     String noDevices = getResources().getText(R.string.none_found).toString();
                     mNewDevicesArrayAdapter.add(noDevices);
                 }

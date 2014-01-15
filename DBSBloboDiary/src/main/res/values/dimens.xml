@@ -10,6 +10,7 @@
     <integer name="sensitivity_default_value">400</integer>
     <integer name="pressure_threshold_default_value">22000</integer>
     <integer name="long_squeeze_duration_default_value">2</integer>
+    <integer name="SMA_window_size_default_value">15</integer>
 
     <bool name="calibration_test_default_value">false</bool>
 </resources>

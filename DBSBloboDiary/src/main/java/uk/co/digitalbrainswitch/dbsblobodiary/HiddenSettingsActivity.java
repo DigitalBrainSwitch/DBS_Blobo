@@ -21,7 +21,7 @@ public class HiddenSettingsActivity extends Activity implements View.OnClickList
 
     Typeface font;
 
-    EditText etHiddenSettingsMinimum, etHiddenSettingsMaximum;
+    EditText etHiddenSettingsMinimum, etHiddenSettingsMaximum, etHiddenSettingsSMAWindowSize;
     Button bHiddenSettingsSave, bHiddenSettingsReset;
     SharedPreferences sharedPref;
 
@@ -34,17 +34,24 @@ public class HiddenSettingsActivity extends Activity implements View.OnClickList
     }
 
     private void initialise() {
-        TextView tv = (TextView) findViewById(R.id.tvHiddenSettingsMinimum);
+        TextView tv = (TextView) findViewById(R.id.tvHiddenSettingsSMAWindowSize);
+        tv.setTypeface(font);
+        tv = (TextView) findViewById(R.id.tvHiddenSettingsMinimum);
         tv.setTypeface(font);
         tv = (TextView) findViewById(R.id.tvHiddenSettingsMaximum);
         tv.setTypeface(font);
 
         sharedPref = getDefaultSharedPreferences(getApplicationContext());
+        int SMAWindowSize = sharedPref.getInt(getString(R.string.SMA_window_size),
+                getResources().getInteger(R.integer.SMA_window_size_default_value));
         int pressureMinimum = sharedPref.getInt(getString(R.string.pressure_min),
                 getResources().getInteger(R.integer.pressure_min_default_value));
         int pressureMaximum = sharedPref.getInt(getString(R.string.pressure_max),
                 getResources().getInteger(R.integer.pressure_max_default_value));
 
+        etHiddenSettingsSMAWindowSize = (EditText) findViewById(R.id.etHiddenSettingsSMAWindowSize);
+        etHiddenSettingsSMAWindowSize.setTypeface(font);
+        etHiddenSettingsSMAWindowSize.setText(Integer.toString(SMAWindowSize));
         etHiddenSettingsMinimum = (EditText) findViewById(R.id.etHiddenSettingsMinimum);
         etHiddenSettingsMinimum.setTypeface(font);
         etHiddenSettingsMinimum.setText(Integer.toString(pressureMinimum));
@@ -70,41 +77,56 @@ public class HiddenSettingsActivity extends Activity implements View.OnClickList
 
         switch (v.getId()) {
             case R.id.bHiddenSettingsSave:
-                int pressure_min_value, pressure_max_value;
+                int SMAWindowSize, pressureMinimum, pressureMaximum;
 
                 //Check if value is integer. If not, display an alert dialog
                 try {
-                    pressure_min_value = Integer.parseInt(etHiddenSettingsMinimum.getText().toString());
+                    SMAWindowSize = Integer.parseInt(etHiddenSettingsSMAWindowSize.getText().toString());
+                } catch (NumberFormatException e) {
+                    showAlertMessage(getString(R.string.settings_error_title), "Please enter an integer number for SMA Window Size");
+                    break;
+                }
+
+
+                try {
+                    pressureMinimum = Integer.parseInt(etHiddenSettingsMinimum.getText().toString());
                 } catch (NumberFormatException e) {
                     showAlertMessage(getString(R.string.settings_error_title), "Please enter an integer number for Minimum");
                     break;
                 }
 
                 try {
-                    pressure_max_value = Integer.parseInt(etHiddenSettingsMaximum.getText().toString());
+                    pressureMaximum = Integer.parseInt(etHiddenSettingsMaximum.getText().toString());
                 } catch (NumberFormatException e) {
                     showAlertMessage(getString(R.string.settings_error_title), "Please enter an integer number for Maximum");
                     break;
                 }
 
-                if (pressure_min_value >= pressure_max_value) {
+                if (pressureMinimum >= pressureMaximum) {
                     showAlertMessage(getString(R.string.settings_error_title), "Minimum must be smaller than Maximum");
                     break;
                 }
 
+                if (SMAWindowSize < 1) {
+                    showAlertMessage(getString(R.string.settings_error_title), "SMA Window Size must be bigger than 0");
+                    break;
+                }
+
                 //Write to preferences storage
-                editor.putInt(getString(R.string.pressure_min), pressure_min_value);
-                editor.putInt(getString(R.string.pressure_max), pressure_max_value);
+                editor.putInt(getString(R.string.SMA_window_size), SMAWindowSize);
+                editor.putInt(getString(R.string.pressure_min), pressureMinimum);
+                editor.putInt(getString(R.string.pressure_max), pressureMaximum);
                 editor.commit();
 
                 finish();
                 break;
             case R.id.bHiddenSettingsReset:
-                pressure_min_value = getResources().getInteger(R.integer.pressure_min_default_value);
-                pressure_max_value = getResources().getInteger(R.integer.pressure_max_default_value);
-                etHiddenSettingsMinimum.setText(Integer.toString(pressure_min_value));
-                etHiddenSettingsMaximum.setText(Integer.toString(pressure_max_value));
-
+                SMAWindowSize = getResources().getInteger(R.integer.SMA_window_size_default_value);
+                pressureMinimum = getResources().getInteger(R.integer.pressure_min_default_value);
+                pressureMaximum = getResources().getInteger(R.integer.pressure_max_default_value);
+                etHiddenSettingsSMAWindowSize.setText(Integer.toString(SMAWindowSize));
+                etHiddenSettingsMinimum.setText(Integer.toString(pressureMinimum));
+                etHiddenSettingsMaximum.setText(Integer.toString(pressureMaximum));
                 break;
             default:
                 break;

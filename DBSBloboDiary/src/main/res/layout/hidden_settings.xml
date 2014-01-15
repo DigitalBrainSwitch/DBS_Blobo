@@ -26,6 +26,31 @@
                 <TextView
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
+                    android:text="SMA Window Size"
+                    android:id="@+id/tvHiddenSettingsSMAWindowSize"
+                    android:layout_gravity="left|center_vertical"
+                    android:textSize="@dimen/textview_font_size"
+                    android:layout_weight="0.4"
+                    android:paddingTop="10dp" />
+
+                <EditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/etHiddenSettingsSMAWindowSize"
+                    android:layout_gravity="left|center_vertical"
+                    android:numeric="integer"
+                    android:inputType="number"
+                    android:textSize="@dimen/textview_font_size"
+                    android:layout_weight="0.5" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent">
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
                     android:text="Minimum"
                     android:id="@+id/tvHiddenSettingsMinimum"
                     android:layout_gravity="left|center_vertical"

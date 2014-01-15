@@ -9,7 +9,9 @@ import android.os.Bundle;
 import android.app.Activity;
 import android.os.Environment;
 import android.os.Vibrator;
+import android.support.v7.internal.view.menu.MenuView;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -88,6 +90,20 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
     }
 
     private void initialise() {
+        //set custom title bar http://stackoverflow.com/a/8748802
+        this.getActionBar().setDisplayShowCustomEnabled(true);
+        this.getActionBar().setDisplayShowTitleEnabled(false);
+        LayoutInflater inflator = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View v = inflator.inflate(R.layout.titleview, null);
+        //if you need to customize anything else about the text, do it here.
+        //I'm using a custom TextView with a custom font in my layout xml so all I need to do is set title
+        TextView tvTitle = (TextView) v.findViewById(R.id.title);
+        tvTitle.setText(this.getTitle());
+        tvTitle.setTextColor(getResources().getColor(android.R.color.white));
+        tvTitle.setTypeface(font);
+        //assign the view to the actionbar
+        this.getActionBar().setCustomView(v);
+
         data = new TreeMap<Long, TimeLocation>();
         readDataFromFile(selectedFileName);
 

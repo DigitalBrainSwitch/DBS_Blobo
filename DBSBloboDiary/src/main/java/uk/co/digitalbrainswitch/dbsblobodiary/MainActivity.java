@@ -27,6 +27,7 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -111,6 +112,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
 
     //Moving average smooth filter
     private SimpleMovingAveragesSmoothing SMAFilter;
+    private static int SMAWindowSize;
 
     // Name of the connected device
     private String mConnectedDeviceName = null;
@@ -181,12 +183,29 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
         nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         nm.cancel(uniqueID);
 
-        SMAFilter = new SimpleMovingAveragesSmoothing(15); //windows size 23
+        SMAWindowSize = getDefaultSharedPreferences(getApplicationContext()).getInt(getString(R.string.SMA_window_size),
+                getResources().getInteger(R.integer.SMA_window_size_default_value));
+        SMAFilter = new SimpleMovingAveragesSmoothing(SMAWindowSize); //increasing windows size will cause delay
     }
 
     private int touch_counter = 0;
 
     private void initialise() {
+
+        //set custom title bar http://stackoverflow.com/a/8748802
+        this.getActionBar().setDisplayShowCustomEnabled(true);
+        this.getActionBar().setDisplayShowTitleEnabled(false);
+        LayoutInflater inflator = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View v = inflator.inflate(R.layout.titleview, null);
+        //if you need to customize anything else about the text, do it here.
+        //I'm using a custom TextView with a custom font in my layout xml so all I need to do is set title
+        TextView tvTitle = (TextView) v.findViewById(R.id.title);
+        tvTitle.setText(this.getTitle());
+        tvTitle.setTextColor(getResources().getColor(android.R.color.white));
+        tvTitle.setTypeface(font);
+        //assign the view to the actionbar
+        this.getActionBar().setCustomView(v);
+
         tvDisplay = (TextView) findViewById(R.id.tvMainDisplay);
         tvDisplay.setTypeface(font);
         tvConnectionStatus = (TextView) findViewById(R.id.tvMainConnectionStatus);
@@ -205,7 +224,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
                         Log.e(TAG, "TOUCHED: " + ++touch_counter);
                         if (touch_counter == 5) {
                             vibrate(100);
-                            Toast.makeText(getApplicationContext(), "TOUCHED: " + touch_counter + ". Hidden Settings.", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplicationContext(), touch_counter + "Taps" + ": Hidden Settings.", Toast.LENGTH_SHORT).show();
                             showHiddenSettings();
                         }
                         break;
@@ -267,6 +286,9 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
 
         //Update threshold values from shared preferences
         SharedPreferences sharedPref = getDefaultSharedPreferences(getApplicationContext());
+        SMAWindowSize = sharedPref.getInt(getString(R.string.SMA_window_size),
+                getResources().getInteger(R.integer.SMA_window_size_default_value));
+        SMAFilter.setWindowSize(SMAWindowSize);
         minPressure = (double) sharedPref.getInt(getString(R.string.pressure_min),
                 getResources().getInteger(R.integer.pressure_min_default_value));
         maxPressure = (double) sharedPref.getInt(getString(R.string.pressure_max),
@@ -331,6 +353,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
+
         return true;
     }
 
@@ -504,17 +527,19 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
                     //read from blobo device
                     byte[] readBuf = (byte[]) msg.obj;
                     int numA = ((int) readBuf[1] & 0xff) + ((int) readBuf[0] & 0xff) * 256;
-                    if(calibrationTest && numA < 10000)
+
+                    if (calibrationTest && (numA < minPressure || numA > maxPressure))
                         tvCalibrationTestDisplay2.setText(Integer.toString(numA));
 
                     if (numA >= minPressure && numA < maxPressure) { //to remove noisy data
                         //apply low pass filter on numA
                         prevNumA = numA = (int) LowPassFilter.filter((float) numA, (float) prevNumA, 0.5f);
-                    } else if(numA < minPressure){
+                    } else if (numA < minPressure) {
                         break;
 //                        numA = (int) minPressure;
 //                        prevNumA = numA = (int) LowPassFilter.filter((float) numA, (float) prevNumA, 0.5f);
                     } else {
+                        //throw away values that are not within the range of min and max pressure
                         break;
                     }
                     //apply simple moving average filter
@@ -536,7 +561,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
                     );
                     if (!calibrationTest) {
                         pressureLogValueCounter++;
-                        if (pressureLogValueCounter == 10) { //logs every 10th value (not enough space to log every pressure value)
+                        if (pressureLogValueCounter == 5) { //log every 5th value (not enough space to log every pressure value)
                             savePressureValueToFile(systemTimeMillis, (int) pressure, (int) calibrationMark, calibrationDifference); //store blobo pressure values
                             pressureLogValueCounter = 0;
                         }
@@ -641,7 +666,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
                         audioAlert();
                         tvCalibrationTestDisplay.setText("Cal_test Mode ON: " + ++eventCounter + "\t");
                     }
-                    //recalibrate after 1.5 sec of a squeeze event
+                    //recalibrate after 1 sec of a squeeze event
                     Thread thread = new Thread() {
                         @Override
                         public void run() {
@@ -685,11 +710,11 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
     };
 
     private void recalibrate() {
-        double oldCalibrationMark = calibrationMark;
+//        double oldCalibrationMark = calibrationMark;
         calibrationMark = pressure;
-        if ((calibrationMark - oldCalibrationMark) > calibrationDifference) {
-            calibrationMark = (oldCalibrationMark + calibrationMark) / 2;
-        }
+//        if ((calibrationMark - oldCalibrationMark) > calibrationDifference) {
+//            calibrationMark = (oldCalibrationMark + calibrationMark) / 2;
+//        }
         Log.e(TAG, "New CalibrationMark: " + (int) calibrationMark);
         thresholdPressure = calibrationMark;
         updateSharedPreference(); //also update the calibration value to the stored shared preferences

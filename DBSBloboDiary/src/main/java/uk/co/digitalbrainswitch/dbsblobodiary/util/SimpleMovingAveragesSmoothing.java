@@ -1,5 +1,7 @@
 package uk.co.digitalbrainswitch.dbsblobodiary.util;
 
+import android.util.Log;
+
 import java.util.Vector;
 
 /**
@@ -17,8 +19,8 @@ public class SimpleMovingAveragesSmoothing {
     }
 
     public SimpleMovingAveragesSmoothing(int wSize){
-        this.setWindowSize(wSize);
         recentData = new Vector<Float>();
+        this.setWindowSize(wSize);
     }
 
     public float addMostRecentValue(float value){
@@ -41,6 +43,15 @@ public class SimpleMovingAveragesSmoothing {
 
     public void setWindowSize(int newWindowSize){
         this._windowSize = newWindowSize;
+        //resize the vector to match the new window size
+        while(recentData.size() > _windowSize){
+            recentData.removeElementAt(0);
+        }
+        Log.e("SimpleMovingAveragesSmoothing", "Vector size: " + recentData.size() + " Window size: " + _windowSize);
+    }
+
+    public int getWindowSize(){
+        return _windowSize;
     }
 
     public void resetRecentData(){
