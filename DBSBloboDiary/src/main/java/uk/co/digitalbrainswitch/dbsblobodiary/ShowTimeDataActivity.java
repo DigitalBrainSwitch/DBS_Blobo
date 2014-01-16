@@ -55,7 +55,8 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
     private LinearLayout layout;
     private GraphicalView mChartView = null;
 
-    TreeMap<Long, TimeLocation> data;
+    //TreeMap<Long, TimeLocation> data;
+    TreeMap<Long, Long> data;
 
 
     @Override
@@ -104,7 +105,8 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
         //assign the view to the actionbar
         this.getActionBar().setCustomView(v);
 
-        data = new TreeMap<Long, TimeLocation>();
+        //data = new TreeMap<Long, TimeLocation>();
+        data = new TreeMap<Long, Long>();
         readDataFromFile(selectedFileName);
 
         layout = (LinearLayout) findViewById(R.id.layoutShowTimeChart);
@@ -136,21 +138,28 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
                 //Read every line from file. Discard pressure values that are lower than the threshold.
                 while ((receiveString = bufferedReader.readLine()) != null) {
                     long timeInMillisecond = -1;
+                    long sensorValue = -1;
                     double latitude = -1;
                     double longitude = -1;
                     try {
                         StringTokenizer st = new StringTokenizer(receiveString, ";");
                         String timeString = st.nextToken();
-                        String locationString = st.nextToken();
+                        String sensorString = st.nextToken();
+
+                        timeInMillisecond = Long.parseLong(timeString);
+                        sensorValue = Long.parseLong(sensorString);
+
+                        /*
                         StringTokenizer stLocation = new StringTokenizer(locationString, ",");
                         String latitudeString = stLocation.nextToken();
                         String longitudeString = stLocation.nextToken();
                         timeInMillisecond = Long.parseLong(timeString);
                         latitude = Double.parseDouble(latitudeString);
                         longitude = Double.parseDouble(longitudeString);
+                        */
 
                         TimeLocation timeLocation = new TimeLocation(timeInMillisecond, latitude, longitude);
-                        data.put(timeInMillisecond, timeLocation);
+                        data.put(timeInMillisecond, sensorValue);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -173,10 +182,15 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
             //When user touched a point on the graph
             Intent intent = new Intent(this, MapActivity.class);
             long key = (long) seriesSelection.getXValue();
+
+            /*
             TimeLocation selectedTimeLocation = data.get(key);
             intent.putExtra(getString(R.string.intent_extra_time_location), selectedTimeLocation);
             intent.putExtra(getString(R.string.intent_extra_number_of_map_points), getString(R.string.single_map_point));
+
+
             startActivity(intent);
+            */
 //            Toast.makeText(
 //                    ShowTimeDataActivity.this, "Clicked point value X=" + getDate((long) xy[0], "yyyy-MM-dd HH:mm:ss.SSS"), Toast.LENGTH_SHORT).show();
         }
