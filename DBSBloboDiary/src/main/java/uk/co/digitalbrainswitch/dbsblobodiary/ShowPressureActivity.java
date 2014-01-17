@@ -2,33 +2,24 @@ package uk.co.digitalbrainswitch.dbsblobodiary;
 
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Typeface;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.ScaleDrawable;
 import android.os.Bundle;
 import android.app.Activity;
 import android.os.Environment;
-import android.os.Vibrator;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewTreeObserver;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import org.achartengine.ChartFactory;
 import org.achartengine.GraphicalView;
 import org.achartengine.chart.PointStyle;
-import org.achartengine.model.SeriesSelection;
 import org.achartengine.model.TimeSeries;
 import org.achartengine.model.XYMultipleSeriesDataset;
 import org.achartengine.renderer.BasicStroke;
@@ -41,9 +32,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -51,22 +41,20 @@ import java.util.TreeMap;
 
 import uk.co.digitalbrainswitch.dbsblobodiary.location.TimeLocation;
 
-public class ShowTimeDataActivity extends Activity implements View.OnClickListener, View.OnLongClickListener {
+public class ShowPressureActivity extends Activity implements View.OnClickListener {
 
     Typeface font;
-    Button bShowAllOnMap;
     String selectedFileName = "NULL";
     // chart container
     private LinearLayout layout;
     private GraphicalView mChartView = null;
 
-    TreeMap<Long, TimeLocation> data;
-
+    TreeMap<Long, Integer> data;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.show_time_data);
+        setContentView(R.layout.show_pressure);
 
         font = ((MyApplication) getApplication()).getCustomTypeface();
 
@@ -75,12 +63,11 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
         selectedFileName = extra.getString(getString(R.string.intent_extra_selected_file_name));
 
         //set up UI
-        TextView txt = (TextView) findViewById(R.id.tvShowTimeDate);
+        TextView txt = (TextView) findViewById(R.id.tvShowPressureTimeDate);
         txt.setTypeface(font);
         txt.append(translateFileNameToDate(selectedFileName));
 
         this.initialise();
-
     }
 
     //fileName format YYYY-MM-DD_<day of week> to YYYY/MM/DD <day of week>
@@ -89,35 +76,7 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
         return st.nextToken().replaceAll("-", "/").replaceAll("_", " ");
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-    }
-
-    private boolean mMeasure = false;
     private void initialise() {
-        bShowAllOnMap = (Button) findViewById(R.id.bShowAllOnMap);
-        bShowAllOnMap.setTypeface(font);
-        bShowAllOnMap.setOnClickListener(this);
-        bShowAllOnMap.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                if(!mMeasure){
-                    int scaleLength = (int) (bShowAllOnMap.getLineHeight() * 1.5); //(int) getResources().getDimension(R.dimen.textview_font_size);
-                    Drawable drawable = getResources().getDrawable(R.drawable.map_200x200);
-                    drawable.setBounds(0, 0, scaleLength, scaleLength);
-                    ScaleDrawable sd = new ScaleDrawable(drawable, 0, 0, 0);
-                    bShowAllOnMap.setCompoundDrawables(sd.getDrawable(), null, null, null);
-                    mMeasure = true;
-                }
-            }
-        });
-
         //set custom title bar http://stackoverflow.com/a/8748802
         this.getActionBar().setDisplayShowCustomEnabled(true);
         this.getActionBar().setDisplayShowTitleEnabled(false);
@@ -132,10 +91,10 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
         //assign the view to the actionbar
         this.getActionBar().setCustomView(v);
 
-        data = new TreeMap<Long, TimeLocation>();
+        data = new TreeMap<Long, Integer>();
         readDataFromFile(selectedFileName);
 
-        layout = (LinearLayout) findViewById(R.id.layoutShowTimeChart);
+        layout = (LinearLayout) findViewById(R.id.layoutShowPressureTimeChart);
         if (mChartView != null)
             layout.removeView(mChartView);
 
@@ -144,7 +103,6 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
 
         mChartView = ChartFactory.getTimeChartView(this, dateDataset, renderer, null);
         mChartView.setOnClickListener(this);
-        mChartView.setOnLongClickListener(this);
         layout.addView(mChartView);
 
         if (data.size() == 0) {
@@ -155,7 +113,7 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
 
     private void readDataFromFile(String fileName) {
         File root = Environment.getExternalStorageDirectory();
-        File storedDirectory = new File(root, getString(R.string.stored_data_directory));
+        File storedDirectory = new File(root, getString(R.string.stored_diary_values_directory));
         File file = new File(storedDirectory, fileName);
         try {
             FileInputStream inputStream = new FileInputStream(file);
@@ -168,22 +126,24 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
 
                 //Read every line from file. Discard pressure values that are lower than the threshold.
                 while ((receiveString = bufferedReader.readLine()) != null) {
-                    long timeInMillisecond = -1;
-                    double latitude = -1;
-                    double longitude = -1;
+                    //long timeInMillisecond = -1;
                     try {
                         StringTokenizer st = new StringTokenizer(receiveString, ";");
-                        String timeString = st.nextToken();
-                        String locationString = st.nextToken();
-                        StringTokenizer stLocation = new StringTokenizer(locationString, ",");
-                        String latitudeString = stLocation.nextToken();
-                        String longitudeString = stLocation.nextToken();
-                        timeInMillisecond = Long.parseLong(timeString);
-                        latitude = Double.parseDouble(latitudeString);
-                        longitude = Double.parseDouble(longitudeString);
 
-                        TimeLocation timeLocation = new TimeLocation(timeInMillisecond, latitude, longitude);
-                        data.put(timeInMillisecond, timeLocation);
+                        String timeString = st.nextToken();
+                        String blobo_sensor_value_string = st.nextToken();
+                        String calibration_mark_string = st.nextToken();
+                        String calibration_difference_string = st.nextToken();
+
+                        long timeInMillisecond = Long.parseLong(timeString);
+                        int bloboSensorValue = Integer.parseInt(blobo_sensor_value_string);
+                        int calibrationMark = Integer.parseInt(calibration_mark_string);
+                        int calibrationDifference = Integer.parseInt(calibration_difference_string);
+
+                        //only include the values that are above the threshold (squeeze values)
+                        if (bloboSensorValue > (calibrationMark + calibrationDifference)) {
+                            data.put(timeInMillisecond, bloboSensorValue);
+                        }
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -197,40 +157,15 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
         }
     }
 
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.bShowAllOnMap:
-                showMap();
-                return;
-            default:
-                break;
-        }
-        SeriesSelection seriesSelection = mChartView.getCurrentSeriesAndPoint();
-//        double[] xy = mChartView.toRealPoint(0);
-        if (seriesSelection != null) {
-            vibrate(100);
-            //When user touched a point on the graph
-            Intent intent = new Intent(this, MapActivity.class);
-            long key = (long) seriesSelection.getXValue();
-            TimeLocation selectedTimeLocation = data.get(key);
-            intent.putExtra(getString(R.string.intent_extra_time_location), selectedTimeLocation);
-            intent.putExtra(getString(R.string.intent_extra_number_of_map_points), getString(R.string.single_map_point));
-            startActivity(intent);
-//            Toast.makeText(
-//                    ShowTimeDataActivity.this, "Clicked point value X=" + getDate((long) xy[0], "yyyy-MM-dd HH:mm:ss.SSS"), Toast.LENGTH_SHORT).show();
-        }
+    //Method for displaying a popup alert dialog
+    private void showAlertMessage(String title, String Message) {
+        AlertDialog.Builder popupBuilder = new AlertDialog.Builder(this);
+        popupBuilder.setTitle(title);
+        popupBuilder.setMessage(Message);
+        popupBuilder.setPositiveButton("OK", null);
+        popupBuilder.show();
     }
 
-    private static String getDate(long milliSeconds, String dateFormat) {
-        // Create a DateFormatter object for displaying date in specified format.
-        DateFormat formatter = new SimpleDateFormat(dateFormat);
-
-        // Create a calendar object that will convert the date and time value in milliseconds to date.
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(milliSeconds);
-        return formatter.format(calendar.getTime());
-    }
 
     private XYMultipleSeriesRenderer getRenderer(int numOfSeries) {
         XYMultipleSeriesRenderer renderer = new XYMultipleSeriesRenderer();
@@ -246,12 +181,13 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
 //        renderer.setLabelsTextSize(25);
 //        renderer.setLegendTextSize(20);
         renderer.setShowLegend(false);
+//        renderer.setZoomInLimitX(1);
         renderer.setLabelsTextSize(0.035F * ((size.x < size.y) ? size.x : size.y));
 
-        renderer.setPointSize(0.04F * ((size.x < size.y) ? size.x : size.y));
+        renderer.setPointSize(10f);
 //        renderer.setPointSize(50f);
-        renderer.setYAxisMax(1.5f);
-        renderer.setYAxisMin(0.5f);
+//        renderer.setYAxisMax(1.5f);
+//        renderer.setYAxisMin(0.5f);
         renderer.setZoomEnabled(true, false);
         renderer.setZoomButtonsVisible(true);
 
@@ -266,9 +202,9 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
         for (int i = 0; i < numOfSeries; i++) {
             r = new XYSeriesRenderer();
             r.setColor(COLORS[i % COLORS.length]);
-            r.setPointStyle(PointStyle.CIRCLE);
-            r.setStroke(BasicStroke.SOLID);
-            r.setFillPoints(true);
+            r.setPointStyle(PointStyle.POINT);
+//            r.setStroke(BasicStroke.SOLID);
+//            r.setFillPoints(true);
             r.setPointStrokeWidth(0.015F * ((size.x < size.y) ? size.x : size.y));
             r.setAnnotationsColor(Color.DKGRAY);
             r.setAnnotationsTextSize(0.03F * ((size.x < size.y) ? size.x : size.y));
@@ -296,39 +232,39 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
         Set<Long> keySet = data.keySet();
         Long[] keys = keySet.toArray(new Long[keySet.size()]);
 
-        Display display = getWindowManager().getDefaultDisplay();
-        Point size = new Point();
-        display.getSize(size);
-        final float POINT_SIZE = 0.04F * ((size.x < size.y) ? size.x : size.y);
-        double ANNOTATION_Y_OFFSET = 0.02F * ((size.x < size.y) ? size.x : size.y);
+//        Display display = getWindowManager().getDefaultDisplay();
+//        Point size = new Point();
+//        display.getSize(size);
+//        final float POINT_SIZE = 0.04F * ((size.x < size.y) ? size.x : size.y);
+//        double ANNOTATION_Y_OFFSET = 0.02F * ((size.x < size.y) ? size.x : size.y);
 
-        SimpleDateFormat sdf = new SimpleDateFormat("hh:mm:ss a");
-        int COUNTER = 0;
+//        SimpleDateFormat sdf = new SimpleDateFormat("hh:mm:ss a");
+//        int COUNTER = 0;
         Date prevDate = null;
 
-        float Y_OFFSET = 0;
+//        float Y_OFFSET = 0;
         int Y_OFFSET_SERIES_COUNTER = 0;
 
         for (long key : keys) {
             Date date = new Date(key);
             if (prevDate != null) {
                 if ((date.getTime() - prevDate.getTime()) < 600000) { //if dates are within 10min of each other
-                    if (Y_OFFSET_SERIES_COUNTER < 0) {
-                        Y_OFFSET += 3 / (POINT_SIZE);
-                        Y_OFFSET_SERIES_COUNTER++;
-                    }
+//                    if (Y_OFFSET_SERIES_COUNTER < 0) {
+//                        Y_OFFSET += 3 / (POINT_SIZE);
+//                        Y_OFFSET_SERIES_COUNTER++;
+//                    }
                 } else {
                     //reset the Y_OFFSET
-                    Y_OFFSET = 0;
-                    Y_OFFSET_SERIES_COUNTER = 0;
+//                    Y_OFFSET = 0;
+//                    Y_OFFSET_SERIES_COUNTER = 0;
                     dataset.addSeries(series);
                     series = new TimeSeries("Sensor Data");
                 }
             }
-            series.add(date, 1 + Y_OFFSET);
+            series.add(date, data.get(key));
             //add time string as annotation
-            series.addAnnotation(sdf.format(date), date.getTime(), 1 + Y_OFFSET + 1.5 / ANNOTATION_Y_OFFSET * ((COUNTER % 2 == 0) ? 1 : -1 * 1.5));
-            COUNTER++;
+//            series.addAnnotation(sdf.format(date), date.getTime(), 1 + Y_OFFSET + 1.5 / ANNOTATION_Y_OFFSET * ((COUNTER % 2 == 0) ? 1 : -1 * 1.5));
+//            COUNTER++;
             prevDate = date;
         }
         dataset.addSeries(series);
@@ -337,57 +273,7 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.show_time_data, menu);
-        return true;
-    }
+    public void onClick(View v) {
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        super.onOptionsItemSelected(item);
-
-        switch (item.getItemId()) {
-            case (R.id.menu_show_pressure_values):
-//                showMap();
-                showPressure();
-                break;
-            default:
-                break;
-        }
-        return true;
-    }
-
-    private void showPressure() {
-        Intent intent = new Intent(ShowTimeDataActivity.this, ShowPressureActivity.class);
-        intent.putExtra(getString(R.string.intent_extra_selected_file_name), selectedFileName);
-        startActivity(intent);
-    }
-
-    private void showMap() {
-        Intent intent = new Intent(ShowTimeDataActivity.this, MapActivity.class);
-        intent.putExtra(getString(R.string.intent_extra_selected_file_name), selectedFileName);
-        intent.putExtra(getString(R.string.intent_extra_number_of_map_points), getString(R.string.multiple_map_points));
-        startActivity(intent);
-    }
-
-    //Method for displaying a popup alert dialog
-    private void showAlertMessage(String title, String Message) {
-        AlertDialog.Builder popupBuilder = new AlertDialog.Builder(this);
-        popupBuilder.setTitle(title);
-        popupBuilder.setMessage(Message);
-        popupBuilder.setPositiveButton("OK", null);
-        popupBuilder.show();
-    }
-
-    private void vibrate(long time) {
-        Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-        v.vibrate(time);
-    }
-
-    @Override
-    public boolean onLongClick(View v) {
-        this.onClick(v);
-        return false;
     }
 }

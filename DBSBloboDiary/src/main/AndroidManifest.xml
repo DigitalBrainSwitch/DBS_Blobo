@@ -48,63 +48,67 @@
         <activity
             android:name="uk.co.digitalbrainswitch.dbsblobodiary.ShowTimeDataActivity"
             android:label="@string/title_activity_show_time_data"
-            android:screenOrientation="portrait"></activity>
+            android:screenOrientation="portrait" />
         <activity
             android:name="uk.co.digitalbrainswitch.dbsblobodiary.AboutActivity"
             android:label="@string/title_activity_about"
             android:screenOrientation="portrait"
-            android:theme="@android:style/Theme.Holo.Light.Dialog"></activity>
+            android:theme="@android:style/Theme.Holo.Light.Dialog" />
         <activity
             android:name="uk.co.digitalbrainswitch.dbsblobodiary.bluetooth.DeviceListActivity"
             android:label="@string/title_device_list"
             android:screenOrientation="portrait"
-            android:theme="@android:style/Theme.Holo.Light.Dialog"></activity>
+            android:theme="@android:style/Theme.Holo.Light.Dialog" />
         <activity
             android:name="uk.co.digitalbrainswitch.dbsblobodiary.SettingsActivity"
             android:label="@string/title_activity_settings"
             android:screenOrientation="portrait"
-            android:theme="@android:style/Theme.Holo.Light.Dialog"></activity>
+            android:theme="@android:style/Theme.Holo.Light.Dialog" />
         <activity
             android:name="uk.co.digitalbrainswitch.dbsblobodiary.MapActivity"
             android:label="@string/title_activity_map"
-            android:screenOrientation="portrait"></activity>
+            android:screenOrientation="portrait" />
         <activity
             android:name="uk.co.digitalbrainswitch.dbsblobodiary.TimeDataListActivity"
             android:label="@string/title_activity_time_data_list"
             android:screenOrientation="portrait"
-            android:theme="@android:style/Theme.Holo.Light.Dialog"></activity>
+            android:theme="@android:style/Theme.Holo.Light.Dialog" />
         <activity
             android:name="uk.co.digitalbrainswitch.dbsblobodiary.MapListActivity"
             android:label="@string/title_activity_map_list"
             android:screenOrientation="portrait"
-            android:theme="@android:style/Theme.Holo.Light.Dialog"></activity>
+            android:theme="@android:style/Theme.Holo.Light.Dialog" />
         <activity
             android:name="uk.co.digitalbrainswitch.dbsblobodiary.ReflectionActivity"
             android:label="@string/title_activity_reflection"
             android:screenOrientation="portrait"
-            android:theme="@android:style/Theme.Holo.Light.Dialog"></activity>
+            android:theme="@android:style/Theme.Holo.Light.Dialog" />
         <activity
             android:name="uk.co.digitalbrainswitch.dbsblobodiary.ViewAnEventActivity"
             android:label="@string/title_activity_view_an_event"
-            android:screenOrientation="portrait"></activity>
+            android:screenOrientation="portrait" />
         <activity
             android:name="uk.co.digitalbrainswitch.dbsblobodiary.CalendarDatePickerActivity"
             android:label="@string/title_activity_calendar_date_picker"
-            android:screenOrientation="portrait"></activity>
+            android:screenOrientation="portrait" />
         <activity
             android:name="uk.co.digitalbrainswitch.dbsblobodiary.ShowEventsActivity"
             android:label="@string/title_activity_show_events"
             android:screenOrientation="portrait"
-            android:theme="@android:style/Theme.Holo.Light.Dialog"></activity>
+            android:theme="@android:style/Theme.Holo.Light.Dialog" />
         <activity
             android:name="uk.co.digitalbrainswitch.dbsblobodiary.AddDiaryEntryActivity"
             android:label="@string/title_activity_add_diary_entry"
-            android:screenOrientation="portrait"></activity>
+            android:screenOrientation="portrait" />
         <activity
             android:name="uk.co.digitalbrainswitch.dbsblobodiary.HiddenSettingsActivity"
             android:label="@string/title_activity_hidden_settings"
             android:screenOrientation="portrait"
-            android:theme="@android:style/Theme.Holo.Light.Dialog"></activity>
+            android:theme="@android:style/Theme.Holo.Light.Dialog" />
+        <activity
+            android:name="uk.co.digitalbrainswitch.dbsblobodiary.ShowPressureActivity"
+            android:label="@string/title_activity_show_pressure"
+            android:screenOrientation="portrait" />
     </application>
 
 </manifest>
