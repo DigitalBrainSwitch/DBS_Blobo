@@ -4,6 +4,8 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Point;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.app.Activity;
@@ -11,9 +13,11 @@ import android.os.Environment;
 import android.os.Vibrator;
 import android.support.v7.internal.view.menu.MenuView;
 import android.util.Log;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -25,6 +29,7 @@ import org.achartengine.chart.PointStyle;
 import org.achartengine.model.SeriesSelection;
 import org.achartengine.model.TimeSeries;
 import org.achartengine.model.XYMultipleSeriesDataset;
+import org.achartengine.renderer.BasicStroke;
 import org.achartengine.renderer.XYMultipleSeriesRenderer;
 import org.achartengine.renderer.XYSeriesRenderer;
 
@@ -39,15 +44,17 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.LinkedHashMap;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
+import java.util.Vector;
 
 import uk.co.digitalbrainswitch.dbsblobodiary.location.TimeLocation;
 
-public class ShowTimeDataActivity extends Activity implements View.OnClickListener {
+public class ShowTimeDataActivity extends Activity implements View.OnClickListener, View.OnLongClickListener {
 
     Typeface font;
     String selectedFileName = "NULL";
@@ -108,13 +115,14 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
         readDataFromFile(selectedFileName);
 
         layout = (LinearLayout) findViewById(R.id.layoutShowTimeChart);
-        if(mChartView != null)
+        if (mChartView != null)
             layout.removeView(mChartView);
         mChartView = ChartFactory.getTimeChartView(this, getDateDataset(), getRenderer(), null);
         mChartView.setOnClickListener(this);
+        mChartView.setOnLongClickListener(this);
         layout.addView(mChartView);
 
-        if(data.size() == 0){
+        if (data.size() == 0) {
             showAlertMessage("Error", "Error reading data from file: " + selectedFileName);
             return;
         }
@@ -167,7 +175,7 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
     @Override
     public void onClick(View v) {
         SeriesSelection seriesSelection = mChartView.getCurrentSeriesAndPoint();
-        double[] xy = mChartView.toRealPoint(0);
+//        double[] xy = mChartView.toRealPoint(0);
         if (seriesSelection != null) {
             vibrate(100);
             //When user touched a point on the graph
@@ -196,14 +204,22 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
         XYMultipleSeriesRenderer renderer = new XYMultipleSeriesRenderer();
         //renderer.setBackgroundColor(Color.BLACK);
 
+        Display display = getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+
+        renderer.setTextTypeface(font);
         renderer.setAxisTitleTextSize(20);
         renderer.setChartTitleTextSize(20);
-        renderer.setLabelsTextSize(25);
-        //renderer.setLegendTextSize(20);
+//        renderer.setLabelsTextSize(25);
+//        renderer.setLegendTextSize(20);
         renderer.setShowLegend(false);
-        renderer.setPointSize(20f);
+        renderer.setLabelsTextSize(0.035F * ((size.x < size.y) ? size.x : size.y));
+
+        renderer.setPointSize(0.04F * ((size.x < size.y) ? size.x : size.y));
+//        renderer.setPointSize(50f);
         renderer.setYAxisMax(1.5f);
-        renderer.setYAxisMin(0.5f);
+        renderer.setYAxisMin(0.75f);
         renderer.setZoomEnabled(true, false);
         renderer.setZoomButtonsVisible(true);
 
@@ -215,8 +231,13 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
 
         final int DBS_BLUE_COLOR = Color.rgb(19, 164, 210); //DBS Blue rgb(19, 164, 210)
         r.setColor(DBS_BLUE_COLOR);
-        r.setPointStyle(PointStyle.SQUARE);
-        r.setFillPoints(true);
+        r.setPointStyle(PointStyle.CIRCLE);
+        r.setStroke(BasicStroke.SOLID);
+        r.setFillPoints(false);
+        r.setPointStrokeWidth(0.015F * ((size.x < size.y) ? size.x : size.y));
+        r.setAnnotationsColor(Color.DKGRAY);
+        r.setAnnotationsTextSize(0.03F * ((size.x < size.y) ? size.x : size.y));
+        r.setAnnotationsTextAlign(Paint.Align.CENTER);
 
         renderer.addSeriesRenderer(r);
         renderer.setAxesColor(Color.DKGRAY);
@@ -227,6 +248,7 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
         renderer.setBackgroundColor(Color.WHITE);
         renderer.setMarginsColor(Color.WHITE);
         renderer.setYLabels(0);
+
         return renderer;
     }
 
@@ -235,9 +257,42 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
         TimeSeries series = new TimeSeries("Sensor Data");
 
         Set<Long> keySet = data.keySet();
-        Long [] keys = keySet.toArray(new Long [keySet.size()]);
-        for (long key : keys){
-            series.add(new Date(key), 1);
+        Long[] keys = keySet.toArray(new Long[keySet.size()]);
+
+        Display display = getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        final float POINT_SIZE = 0.04F * ((size.x < size.y) ? size.x : size.y);
+        double ANNOTATION_Y_OFFSET = 0.02F * ((size.x < size.y) ? size.x : size.y);
+
+        SimpleDateFormat sdf = new SimpleDateFormat("hh:mm:ss a");
+        int COUNTER = 0;
+        Date prevDate = null;
+
+        float Y_OFFSET = 0;
+        int Y_OFFSET_SERIES_COUNTER = 0;
+
+        for (long key : keys) {
+            Date date = new Date(key);
+            if (prevDate != null) {
+                if ((date.getTime() - prevDate.getTime()) < 600000) { //if dates are within 10min of each other
+                    if (Y_OFFSET_SERIES_COUNTER < 1) {
+                        Y_OFFSET += 3 / (POINT_SIZE);
+                        Y_OFFSET_SERIES_COUNTER++;
+                    }
+                } else {
+                    //reset the Y_OFFSET
+                    Y_OFFSET = 0;
+                    Y_OFFSET_SERIES_COUNTER = 0;
+//                    dataset.addSeries(series);
+//                    series = new TimeSeries("Sensor Data");
+                }
+            }
+            series.add(date, 1 + Y_OFFSET);
+            //add time string as annotation
+            series.addAnnotation(sdf.format(date), date.getTime(), 1 + Y_OFFSET + 1.2 / ANNOTATION_Y_OFFSET * ((COUNTER % 2 == 0) ? 1 : -1 * 1.4));
+            COUNTER++;
+            prevDate = date;
         }
         dataset.addSeries(series);
 
@@ -265,7 +320,7 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
         return true;
     }
 
-    private void showMap(){
+    private void showMap() {
         Intent intent = new Intent(ShowTimeDataActivity.this, MapActivity.class);
         intent.putExtra(getString(R.string.intent_extra_selected_file_name), selectedFileName);
         intent.putExtra(getString(R.string.intent_extra_number_of_map_points), getString(R.string.multiple_map_points));
@@ -284,5 +339,11 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
     private void vibrate(long time) {
         Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         v.vibrate(time);
+    }
+
+    @Override
+    public boolean onLongClick(View v) {
+        this.onClick(v);
+        return false;
     }
 }

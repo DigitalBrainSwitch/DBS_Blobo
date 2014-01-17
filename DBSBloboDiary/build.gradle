@@ -23,7 +23,7 @@ android {
 }
 
 dependencies {
-    compile files('libs/achartengine-1.1.0.jar')
+    compile files('libs/achartengine-1.2.0.jar')
     compile files('libs/google-play-services.jar')
 	compile 'com.android.support:appcompat-v7:18.0.0'
 	compile 'com.google.android.gms:play-services:3.1.36'

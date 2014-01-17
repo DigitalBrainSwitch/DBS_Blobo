@@ -17,6 +17,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Switch;
 import android.widget.TextView;
 
@@ -27,7 +28,8 @@ public class SettingsActivity extends Activity implements View.OnClickListener, 
     Typeface font;
 
     EditText etSettingsSensitivity, etSettingsThreshold, etSettingsLongSqueezeDuration;
-    Button bSettingsSave;
+    Button bSettingsSave, bSettingsCancel;
+    LinearLayout llSettingsCalTestTopLine, llSettingsCalTestBottomLine;
     Switch sCalibrationTest;
     SharedPreferences sharedPref;
 
@@ -86,6 +88,10 @@ public class SettingsActivity extends Activity implements View.OnClickListener, 
         etSettingsSensitivity.setText(Integer.toString(sensitivity));
         etSettingsSensitivity.setTypeface(font);
 
+        bSettingsCancel = (Button) findViewById(R.id.bSettingsCancel);
+        bSettingsCancel.setTypeface(font);
+        bSettingsCancel.setOnClickListener(this);
+
         bSettingsSave = (Button) findViewById(R.id.bSettingsSave);
         bSettingsSave.setTypeface(font);
         bSettingsSave.setOnClickListener(this);
@@ -96,12 +102,19 @@ public class SettingsActivity extends Activity implements View.OnClickListener, 
 //        sCalibrationTest.setOnClickListener(this);
         sCalibrationTest.setOnCheckedChangeListener(this);
 
+        llSettingsCalTestTopLine = (LinearLayout) findViewById(R.id.llSettingsCalTestTopLine);
+        llSettingsCalTestBottomLine = (LinearLayout) findViewById(R.id.llSettingsCalTestBottomLine);
+
         if (sCalibrationTest.isChecked()) {
             sCalibrationTest.setTextColor(getResources().getColor(R.color.yellow_8));
             sCalibrationTest.setThumbResource(R.color.yellow_8);
+            llSettingsCalTestTopLine.setBackgroundColor(getResources().getColor(R.color.yellow_8));
+            llSettingsCalTestBottomLine.setBackgroundColor(getResources().getColor(R.color.yellow_8));
         } else {
             sCalibrationTest.setTextColor(getResources().getColor(R.color.gray));
             sCalibrationTest.setThumbResource(R.color.gray);
+            llSettingsCalTestTopLine.setBackgroundColor(getResources().getColor(R.color.gray));
+            llSettingsCalTestBottomLine.setBackgroundColor(getResources().getColor(R.color.gray));
         }
 
         //Check http://xjaphx.wordpress.com/2011/09/20/colorizing-the-title-bar/ for changing title bar
@@ -112,12 +125,15 @@ public class SettingsActivity extends Activity implements View.OnClickListener, 
 
     @Override
     public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.bSettingsSave:
-                //Set to shared preferences
-                SharedPreferences.Editor editor = sharedPref.edit();
-                int sensitivity_value, pressure_threshold_value, long_squeeze_duration_value;
+        //Set to shared preferences
+        SharedPreferences.Editor editor = sharedPref.edit();
+        int sensitivity_value, pressure_threshold_value, long_squeeze_duration_value;
 
+        switch (v.getId()) {
+            case R.id.bSettingsCancel:
+                finish();
+                break;
+            case R.id.bSettingsSave:
                 //Check if value is integer. If not, display an alert dialog
 //                try {
 //                    pressure_min_value = Integer.parseInt(etSettingsMinimum.getText().toString());
@@ -185,7 +201,6 @@ public class SettingsActivity extends Activity implements View.OnClickListener, 
                 editor.putInt(getString(R.string.pressure_threshold), pressure_threshold_value);
                 editor.putInt(getString(R.string.long_squeeze_duration), long_squeeze_duration_value);
                 editor.commit();
-
                 finish();
                 break;
             default:
@@ -269,10 +284,13 @@ public class SettingsActivity extends Activity implements View.OnClickListener, 
                     showAlertMessageWithConfirmation("Warning!", "No data will be recorded when Calibration Test is ON.");
                     sCalibrationTest.setTextColor(getResources().getColor(R.color.yellow_8));
                     sCalibrationTest.setThumbResource(R.color.yellow_8);
+                    llSettingsCalTestTopLine.setBackgroundColor(getResources().getColor(R.color.yellow_8));
+                    llSettingsCalTestBottomLine.setBackgroundColor(getResources().getColor(R.color.yellow_8));
                 } else {
                     sCalibrationTest.setTextColor(getResources().getColor(R.color.gray));
                     sCalibrationTest.setThumbResource(R.color.gray);
-
+                    llSettingsCalTestTopLine.setBackgroundColor(getResources().getColor(R.color.gray));
+                    llSettingsCalTestBottomLine.setBackgroundColor(getResources().getColor(R.color.gray));
                     SharedPreferences.Editor editor = sharedPref.edit();
                     editor.putBoolean(getString(R.string.calibration_test), sCalibrationTest.isChecked());
                     editor.commit();

@@ -21,11 +21,11 @@
     <string name="bt_status_not_connected">Not Connected</string>
 
     <!-- Titles -->
-    <string name="title_activity_show_time_data">Time View</string>
+    <string name="title_activity_show_time_data">Timeline View</string>
     <string name="title_activity_about">About DBS</string>
     <string name="title_device_list">Select a Device to Connect</string>
-    <string name="title_activity_map_list">Pick a Day</string>
-    <string name="title_activity_time_data_list">Pick a Day</string>
+    <string name="title_activity_map_list">Select a Day</string>
+    <string name="title_activity_time_data_list">Select a Day</string>
     <string name="title_activity_history">History</string>
     <string name="title_activity_map">Map View</string>
 

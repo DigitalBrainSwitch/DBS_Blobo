@@ -47,7 +47,6 @@ public class SimpleMovingAveragesSmoothing {
         while(recentData.size() > _windowSize){
             recentData.removeElementAt(0);
         }
-        Log.e("SimpleMovingAveragesSmoothing", "Vector size: " + recentData.size() + " Window size: " + _windowSize);
     }
 
     public int getWindowSize(){
