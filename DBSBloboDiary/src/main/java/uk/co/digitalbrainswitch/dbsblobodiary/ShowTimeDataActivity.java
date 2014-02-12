@@ -34,6 +34,9 @@ import org.achartengine.model.XYMultipleSeriesDataset;
 import org.achartengine.renderer.BasicStroke;
 import org.achartengine.renderer.XYMultipleSeriesRenderer;
 import org.achartengine.renderer.XYSeriesRenderer;
+import org.achartengine.tools.PanListener;
+import org.achartengine.tools.ZoomEvent;
+import org.achartengine.tools.ZoomListener;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -45,13 +48,14 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
 
 import uk.co.digitalbrainswitch.dbsblobodiary.location.TimeLocation;
 
-public class ShowTimeDataActivity extends Activity implements View.OnClickListener, View.OnLongClickListener {
+public class ShowTimeDataActivity extends Activity implements View.OnClickListener, View.OnLongClickListener, PanListener, ZoomListener {
 
     Typeface font;
     Button bShowAllOnMap;
@@ -59,9 +63,13 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
     // chart container
     private LinearLayout layout;
     private GraphicalView mChartView = null;
+    XYMultipleSeriesRenderer renderer;
+
+    public static double panXAxisMin = 0, panXAxisMax = 0, initPanXAxisMin = 0, initPanXAxisMax = 0;
+
+    public static double [] PAN_LIMITS;
 
     TreeMap<Long, TimeLocation> data;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,13 +88,27 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
         txt.append(translateFileNameToDate(selectedFileName));
 
         this.initialise();
-
     }
 
     //fileName format YYYY-MM-DD_<day of week> to YYYY/MM/DD <day of week>
     private String translateFileNameToDate(String fileNameString) {
         StringTokenizer st = new StringTokenizer(fileNameString, ".");
         return st.nextToken().replaceAll("-", "/").replaceAll("_", " ");
+    }
+
+    //not the most efficient way, but it works
+    private Date convertFileNameToSystemDate(String fileNameString) {
+        StringTokenizer st = new StringTokenizer(fileNameString, "_");
+        StringTokenizer dateST = new StringTokenizer(st.nextToken(), "-");
+        String yearString = dateST.nextToken();
+        int year = Integer.parseInt(yearString);
+        String monthString = dateST.nextToken();
+        int month = Integer.parseInt(monthString);
+        String dayString = dateST.nextToken();
+        int day = Integer.parseInt(dayString);
+
+        GregorianCalendar gregorianCalendar = new GregorianCalendar(year, month - 1, day); // month - 1 because it start at 0. i.e. 0 => January
+        return gregorianCalendar.getTime();
     }
 
     @Override
@@ -97,9 +119,36 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
     @Override
     protected void onResume() {
         super.onResume();
+        if (mChartView != null) {
+            layout.removeView(mChartView);
+            mChartView = null;
+        }
+
+        data = new TreeMap<Long, TimeLocation>();
+        readDataFromFile(selectedFileName);
+
+        XYMultipleSeriesDataset dateDataset = getDateDataset();
+        renderer = getRenderer(dateDataset.getSeriesCount());
+
+        if (panXAxisMin != 0 && panXAxisMax != 0) {
+            renderer.setXAxisMin(panXAxisMin);
+            renderer.setXAxisMax(panXAxisMax);
+        }
+
+        mChartView = ChartFactory.getTimeChartView(this, dateDataset, renderer, null);
+        mChartView.setOnClickListener(this);
+        mChartView.setOnLongClickListener(this);
+        mChartView.addPanListener(this);
+        mChartView.addZoomListener(this, true, true);
+        layout.addView(mChartView);
+        if (initPanXAxisMin == 0 && initPanXAxisMax == 0) {
+            initPanXAxisMin = renderer.getXAxisMin();
+            initPanXAxisMax = renderer.getXAxisMax();
+        }
     }
 
     private boolean mMeasure = false;
+
     private void initialise() {
         bShowAllOnMap = (Button) findViewById(R.id.bShowAllOnMap);
         bShowAllOnMap.setTypeface(font);
@@ -107,7 +156,7 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
         bShowAllOnMap.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
-                if(!mMeasure){
+                if (!mMeasure) {
                     int scaleLength = (int) (bShowAllOnMap.getLineHeight() * 1.5); //(int) getResources().getDimension(R.dimen.textview_font_size);
                     Drawable drawable = getResources().getDrawable(R.drawable.map_200x200);
                     drawable.setBounds(0, 0, scaleLength, scaleLength);
@@ -136,16 +185,6 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
         readDataFromFile(selectedFileName);
 
         layout = (LinearLayout) findViewById(R.id.layoutShowTimeChart);
-        if (mChartView != null)
-            layout.removeView(mChartView);
-
-        XYMultipleSeriesDataset dateDataset = getDateDataset();
-        XYMultipleSeriesRenderer renderer = getRenderer(dateDataset.getSeriesCount());
-
-        mChartView = ChartFactory.getTimeChartView(this, dateDataset, renderer, null);
-        mChartView.setOnClickListener(this);
-        mChartView.setOnLongClickListener(this);
-        layout.addView(mChartView);
 
         if (data.size() == 0) {
             showAlertMessage("Error", "Error reading data from file: " + selectedFileName);
@@ -248,7 +287,7 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
         renderer.setShowLegend(false);
         renderer.setLabelsTextSize(0.035F * ((size.x < size.y) ? size.x : size.y));
 
-        renderer.setPointSize(0.04F * ((size.x < size.y) ? size.x : size.y));
+        renderer.setPointSize(0.05F * ((size.x < size.y) ? size.x : size.y));
 //        renderer.setPointSize(50f);
         renderer.setYAxisMax(1.5f);
         renderer.setYAxisMin(0.5f);
@@ -286,6 +325,11 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
         renderer.setMarginsColor(Color.WHITE);
         renderer.setYLabels(0);
 
+        double PanXAxisMin = (double) convertFileNameToSystemDate(selectedFileName).getTime() - 21600000; //minus 6 hours
+        double PanXAxisMax = PanXAxisMin + 86400000 + 21600000 + 21600000; //plus 24 + 6 hours
+        PAN_LIMITS = new double[]{PanXAxisMin, PanXAxisMax, renderer.getYAxisMin(), renderer.getYAxisMax()};
+        renderer.setPanLimits(PAN_LIMITS);
+
         return renderer;
     }
 
@@ -300,7 +344,7 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
         Point size = new Point();
         display.getSize(size);
         final float POINT_SIZE = 0.04F * ((size.x < size.y) ? size.x : size.y);
-        double ANNOTATION_Y_OFFSET = 0.02F * ((size.x < size.y) ? size.x : size.y);
+        double ANNOTATION_Y_OFFSET = 0.03F * ((size.x < size.y) ? size.x : size.y);
 
         SimpleDateFormat sdf = new SimpleDateFormat("hh:mm:ss a");
         int COUNTER = 0;
@@ -308,12 +352,13 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
 
         float Y_OFFSET = 0;
         int Y_OFFSET_SERIES_COUNTER = 0;
+        final int NUM_CONSECUTIVE_STEPS = 0;
 
         for (long key : keys) {
             Date date = new Date(key);
             if (prevDate != null) {
-                if ((date.getTime() - prevDate.getTime()) < 600000) { //if dates are within 10min of each other
-                    if (Y_OFFSET_SERIES_COUNTER < 0) {
+                if ((date.getTime() - prevDate.getTime()) < 600000) { //if event dates are within 10min of each other
+                    if (Y_OFFSET_SERIES_COUNTER < NUM_CONSECUTIVE_STEPS) { //change NUM_CONSECUTIVE_STEPS to increase the height for consecutive points that are within 10min
                         Y_OFFSET += 3 / (POINT_SIZE);
                         Y_OFFSET_SERIES_COUNTER++;
                     }
@@ -327,7 +372,7 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
             }
             series.add(date, 1 + Y_OFFSET);
             //add time string as annotation
-            series.addAnnotation(sdf.format(date), date.getTime(), 1 + Y_OFFSET + 1.5 / ANNOTATION_Y_OFFSET * ((COUNTER % 2 == 0) ? 1 : -1 * 1.5));
+            series.addAnnotation(sdf.format(date), date.getTime(), 1 + Y_OFFSET - 1 / (ANNOTATION_Y_OFFSET * 2) + 5 / POINT_SIZE * ((COUNTER % 2 == 0) ? 1 : -1));//  *
             COUNTER++;
             prevDate = date;
         }
@@ -349,7 +394,6 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
 
         switch (item.getItemId()) {
             case (R.id.menu_show_pressure_values):
-//                showMap();
                 showPressure();
                 break;
             default:
@@ -361,6 +405,8 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
     private void showPressure() {
         Intent intent = new Intent(ShowTimeDataActivity.this, ShowPressureActivity.class);
         intent.putExtra(getString(R.string.intent_extra_selected_file_name), selectedFileName);
+        panXAxisMin = renderer.getXAxisMin();
+        panXAxisMax = renderer.getXAxisMax();
         startActivity(intent);
     }
 
@@ -389,5 +435,37 @@ public class ShowTimeDataActivity extends Activity implements View.OnClickListen
     public boolean onLongClick(View v) {
         this.onClick(v);
         return false;
+    }
+
+    @Override
+    public void panApplied() {
+        panXAxisMin = renderer.getXAxisMin();
+        panXAxisMax = renderer.getXAxisMax();
+    }
+
+    @Override
+    public void zoomApplied(ZoomEvent zoomEvent) {
+        panXAxisMin = renderer.getXAxisMin();
+        panXAxisMax = renderer.getXAxisMax();
+    }
+
+    @Override
+    public void zoomReset() {
+//        renderer.setXAxisMin(initPanXAxisMin);
+//        renderer.setXAxisMax(initPanXAxisMax);
+        renderer.setXAxisMin(renderer.getPanLimits()[0]);
+        renderer.setXAxisMax(renderer.getPanLimits()[1]);
+        panXAxisMin = renderer.getXAxisMin();
+        panXAxisMax = renderer.getXAxisMax();
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        panXAxisMin = 0;
+        panXAxisMax = 0;
+        initPanXAxisMin = 0;
+        initPanXAxisMax = 0;
+        finish();
     }
 }

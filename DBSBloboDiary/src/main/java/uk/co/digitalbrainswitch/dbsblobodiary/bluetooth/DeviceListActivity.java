@@ -17,7 +17,8 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import java.util.Set;
+import java.util.LinkedHashSet;
+
 
 import uk.co.digitalbrainswitch.dbsblobodiary.MyApplication;
 import uk.co.digitalbrainswitch.dbsblobodiary.R;

@@ -1,11 +1,13 @@
 package uk.co.digitalbrainswitch.dbsblobodiary;
 
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Typeface;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Activity;
 import android.os.Environment;
@@ -13,6 +15,7 @@ import android.util.Log;
 import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -25,6 +28,9 @@ import org.achartengine.model.XYMultipleSeriesDataset;
 import org.achartengine.renderer.BasicStroke;
 import org.achartengine.renderer.XYMultipleSeriesRenderer;
 import org.achartengine.renderer.XYSeriesRenderer;
+import org.achartengine.tools.PanListener;
+import org.achartengine.tools.ZoomEvent;
+import org.achartengine.tools.ZoomListener;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -41,13 +47,14 @@ import java.util.TreeMap;
 
 import uk.co.digitalbrainswitch.dbsblobodiary.location.TimeLocation;
 
-public class ShowPressureActivity extends Activity implements View.OnClickListener {
+public class ShowPressureActivity extends Activity implements View.OnClickListener, PanListener, ZoomListener {
 
     Typeface font;
     String selectedFileName = "NULL";
     // chart container
     private LinearLayout layout;
     private GraphicalView mChartView = null;
+    XYMultipleSeriesRenderer renderer;
 
     TreeMap<Long, Integer> data;
 
@@ -68,6 +75,37 @@ public class ShowPressureActivity extends Activity implements View.OnClickListen
         txt.append(translateFileNameToDate(selectedFileName));
 
         this.initialise();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    private void updateChartView() {
+        if (mChartView != null) {
+            layout.removeView(mChartView);
+            mChartView = null;
+        }
+
+        XYMultipleSeriesDataset dateDataset = getDateDataset();
+        renderer = getRenderer(dateDataset.getSeriesCount());
+
+        if (ShowTimeDataActivity.panXAxisMin != 0 && ShowTimeDataActivity.panXAxisMax != 0) {
+            renderer.setXAxisMin(ShowTimeDataActivity.panXAxisMin);
+            renderer.setXAxisMax(ShowTimeDataActivity.panXAxisMax);
+        }
+
+        mChartView = ChartFactory.getTimeChartView(this, dateDataset, renderer, null);
+        mChartView.addPanListener(this);
+        mChartView.addZoomListener(this, true, true);
+        mChartView.setOnClickListener(this);
+        layout.addView(mChartView);
     }
 
     //fileName format YYYY-MM-DD_<day of week> to YYYY/MM/DD <day of week>
@@ -92,26 +130,41 @@ public class ShowPressureActivity extends Activity implements View.OnClickListen
         this.getActionBar().setCustomView(v);
 
         data = new TreeMap<Long, Integer>();
-        readDataFromFile(selectedFileName);
+
+        readData();
 
         layout = (LinearLayout) findViewById(R.id.layoutShowPressureTimeChart);
-        if (mChartView != null)
-            layout.removeView(mChartView);
-
-        XYMultipleSeriesDataset dateDataset = getDateDataset();
-        XYMultipleSeriesRenderer renderer = getRenderer(dateDataset.getSeriesCount());
-
-        mChartView = ChartFactory.getTimeChartView(this, dateDataset, renderer, null);
-        mChartView.setOnClickListener(this);
-        layout.addView(mChartView);
-
-        if (data.size() == 0) {
-            showAlertMessage("Error", "Error reading data from file: " + selectedFileName);
-            return;
-        }
     }
 
-    private void readDataFromFile(String fileName) {
+    private void readData() {
+        ProgressDialog dialog = new ProgressDialog(ShowPressureActivity.this) {
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                TextView tv = (TextView) this.findViewById(android.R.id.message);   //get the message body
+                if (tv != null) {   // Shouldn't be null. Just to be paranoid enough.
+                    tv.setTypeface(font);
+                }
+            }
+        };
+        dialog.setCancelable(true);
+        TextView tvTitle = new TextView(ShowPressureActivity.this);
+        tvTitle.setText("Reading data");
+        tvTitle.setTypeface(font);
+        tvTitle.setTextColor(getResources().getColor(R.color.dbs_blue));
+        tvTitle.setPadding(30, 20, 30, 20);
+        tvTitle.setTextSize(25);
+        dialog.setCustomTitle(tvTitle);
+
+        dialog.setMessage("Please wait ...");
+        dialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        dialog.setProgress(0);
+        dialog.setIndeterminate(false);
+
+        new ReadDataTask(dialog).execute();
+    }
+
+    private void readDataFromFile(String fileName, ProgressDialog progress) {
         File root = Environment.getExternalStorageDirectory();
         File storedDirectory = new File(root, getString(R.string.stored_diary_values_directory));
         File file = new File(storedDirectory, fileName);
@@ -119,14 +172,26 @@ public class ShowPressureActivity extends Activity implements View.OnClickListen
             FileInputStream inputStream = new FileInputStream(file);
 
             if (inputStream != null) {
-                InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-                BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+
+                int TOTAL_NUM_OF_LINES = 0;
+                while (bufferedReader.readLine() != null) { //get the total number of lines in the input file
+                    TOTAL_NUM_OF_LINES++;
+                }
+                inputStream.getChannel().position(0);   //reset inputstream to the beginning position
+                bufferedReader = new BufferedReader(new InputStreamReader(inputStream));    //reset bufferedreader
 
                 String receiveString;
 
+                progress.setMax(TOTAL_NUM_OF_LINES);
+                int LINE_NUM = 0;
                 //Read every line from file. Discard pressure values that are lower than the threshold.
                 while ((receiveString = bufferedReader.readLine()) != null) {
-                    //long timeInMillisecond = -1;
+                    LINE_NUM++;
+                    if (LINE_NUM % (TOTAL_NUM_OF_LINES / 100) == 0) { //update progress 100 times
+                        progress.setProgress(LINE_NUM);
+                    }
+
                     try {
                         StringTokenizer st = new StringTokenizer(receiveString, ";");
 
@@ -140,7 +205,7 @@ public class ShowPressureActivity extends Activity implements View.OnClickListen
                         int calibrationMark = Integer.parseInt(calibration_mark_string);
                         int calibrationDifference = Integer.parseInt(calibration_difference_string);
 
-                        //only include the values that are above the threshold (squeeze values)
+                        //only include bloboSensorValues that are above the threshold (calibration values)
                         if (bloboSensorValue > (calibrationMark + calibrationDifference)) {
                             data.put(timeInMillisecond, bloboSensorValue);
                         }
@@ -184,7 +249,7 @@ public class ShowPressureActivity extends Activity implements View.OnClickListen
 //        renderer.setZoomInLimitX(1);
         renderer.setLabelsTextSize(0.035F * ((size.x < size.y) ? size.x : size.y));
 
-        renderer.setPointSize(10f);
+        renderer.setPointSize(1f);
 //        renderer.setPointSize(50f);
 //        renderer.setYAxisMax(1.5f);
 //        renderer.setYAxisMin(0.5f);
@@ -197,11 +262,12 @@ public class ShowPressureActivity extends Activity implements View.OnClickListen
 
         XYSeriesRenderer r;
 
-        final int COLORS[] = {Color.rgb(0, 191, 255), Color.rgb(30, 144, 255), Color.rgb(75, 75, 187)};
+//        final int COLORS[] = {Color.rgb(0, 191, 255), Color.rgb(30, 144, 255), Color.rgb(75, 75, 187)};
 //        final int DBS_BLUE_COLOR = Color.rgb(19, 164, 210); //DBS Blue rgb(19, 164, 210)
         for (int i = 0; i < numOfSeries; i++) {
             r = new XYSeriesRenderer();
-            r.setColor(COLORS[i % COLORS.length]);
+//            r.setColor(COLORS[i % COLORS.length]);
+            r.setColor(Color.rgb(0, 0, 128));
             r.setPointStyle(PointStyle.POINT);
 //            r.setStroke(BasicStroke.SOLID);
 //            r.setFillPoints(true);
@@ -209,7 +275,9 @@ public class ShowPressureActivity extends Activity implements View.OnClickListen
             r.setAnnotationsColor(Color.DKGRAY);
             r.setAnnotationsTextSize(0.03F * ((size.x < size.y) ? size.x : size.y));
             r.setAnnotationsTextAlign(Paint.Align.CENTER);
-
+//            XYSeriesRenderer.FillOutsideLine fill = new XYSeriesRenderer.FillOutsideLine(XYSeriesRenderer.FillOutsideLine.Type.BELOW);
+//            fill.setColor(Color.rgb(0, 0, 128));
+//            r.addFillOutsideLine(fill);
             renderer.addSeriesRenderer(r);
         }
 
@@ -221,6 +289,8 @@ public class ShowPressureActivity extends Activity implements View.OnClickListen
         renderer.setBackgroundColor(Color.WHITE);
         renderer.setMarginsColor(Color.WHITE);
         renderer.setYLabels(0);
+
+        renderer.setPanLimits(ShowTimeDataActivity.PAN_LIMITS);
 
         return renderer;
     }
@@ -243,7 +313,7 @@ public class ShowPressureActivity extends Activity implements View.OnClickListen
         Date prevDate = null;
 
 //        float Y_OFFSET = 0;
-        int Y_OFFSET_SERIES_COUNTER = 0;
+//        int Y_OFFSET_SERIES_COUNTER = 0;
 
         for (long key : keys) {
             Date date = new Date(key);
@@ -273,7 +343,74 @@ public class ShowPressureActivity extends Activity implements View.OnClickListen
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.show_pressure, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        super.onOptionsItemSelected(item);
+
+        switch (item.getItemId()) {
+            case R.id.menu_show_time_line:
+                this.onBackPressed();
+                break;
+        }
+        return true;
+    }
+
+    @Override
     public void onClick(View v) {
 
+    }
+
+    @Override
+    public void panApplied() {
+        ShowTimeDataActivity.panXAxisMin = renderer.getXAxisMin();
+        ShowTimeDataActivity.panXAxisMax = renderer.getXAxisMax();
+    }
+
+    @Override
+    public void zoomApplied(ZoomEvent zoomEvent) {
+        ShowTimeDataActivity.panXAxisMin = renderer.getXAxisMin();
+        ShowTimeDataActivity.panXAxisMax = renderer.getXAxisMax();
+    }
+
+    @Override
+    public void zoomReset() {
+//        renderer.setXAxisMin(ShowTimeDataActivity.initPanXAxisMin);
+//        renderer.setXAxisMax(ShowTimeDataActivity.initPanXAxisMax);
+        renderer.setXAxisMin(renderer.getPanLimits()[0]);
+        renderer.setXAxisMax(renderer.getPanLimits()[1]);
+        ShowTimeDataActivity.panXAxisMin = renderer.getXAxisMin();
+        ShowTimeDataActivity.panXAxisMax = renderer.getXAxisMax();
+    }
+
+    public class ReadDataTask extends AsyncTask<Void, Void, Void> {
+        ProgressDialog progress;
+
+        public ReadDataTask(ProgressDialog progress) {
+            this.progress = progress;
+        }
+
+        public void onPreExecute() {
+            progress.show();
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            readDataFromFile(selectedFileName, this.progress);
+            return null;
+        }
+
+        public void onPostExecute(Void unused) {
+            updateChartView();
+            progress.dismiss();
+            if (data.size() == 0) {
+                showAlertMessage("Error", "Error reading data from file: " + selectedFileName);
+            }
+        }
     }
 }

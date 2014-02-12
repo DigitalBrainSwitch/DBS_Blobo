@@ -221,7 +221,8 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
                         tapCounter.resetCounter();
-                        Log.e(TAG, "TOUCHED: " + ++touch_counter);
+                        touch_counter++;
+//                        Log.e(TAG, "TOUCHED: " + touch_counter);
                         if (touch_counter == 5) {
                             vibrate(100);
                             Toast.makeText(getApplicationContext(), touch_counter + "Taps" + ": Hidden Settings.", Toast.LENGTH_SHORT).show();
@@ -534,8 +535,8 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
                     if (numA >= minPressure && numA < maxPressure) { //to remove noisy data
                         //apply low pass filter on numA
                         prevNumA = numA = (int) LowPassFilter.filter((float) numA, (float) prevNumA, 0.5f);
-                    } else if (numA < minPressure) {
-                        break;
+//                    } else if (numA < minPressure) {
+//                        break;
 //                        numA = (int) minPressure;
 //                        prevNumA = numA = (int) LowPassFilter.filter((float) numA, (float) prevNumA, 0.5f);
                     } else {
@@ -545,9 +546,9 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
                     //apply simple moving average filter
                     pressure = numA;
                     pressure = SMAFilter.addMostRecentValue(pressure);
-                    if (Math.abs(prevPressure - pressure) > calibrationDifference) {
-                        Log.e(TAG, "" + (int) (prevPressure - pressure));
-                    }
+//                    if (Math.abs(prevPressure - pressure) > calibrationDifference) {
+//                        Log.e(TAG, "" + (int) (prevPressure - pressure));
+//                    }
                     prevPressure = pressure;
                     //prevPressure = pressure = LowPassFilter.filter(prevPressure, pressure, 0.5f);
                     DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -559,7 +560,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
                             + " | (" + (int) calibrationMark + ":" + calibrationDifference + ")"
 //                                + "\t" + ((calibrationTest)?"Cal_test Mode":"")
                     );
-                    if (!calibrationTest) {
+                    if (!calibrationTest && calibrationMark != -1) {
                         pressureLogValueCounter++;
                         if (pressureLogValueCounter == 5) { //log every 5th value (not enough space to log every pressure value)
                             savePressureValueToFile(systemTimeMillis, (int) pressure, (int) calibrationMark, calibrationDifference); //store blobo pressure values
@@ -683,7 +684,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
             } else {
                 longSqueezeCounter = 0;
 
-                //Update calibrationMark value after 3 min
+                //Update calibrationMark value after 1.5 sec
                 if (previousDate != null) {
                     Date newDate = new Date();
                     newDate.setTime(System.currentTimeMillis());
@@ -715,7 +716,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
 //        if ((calibrationMark - oldCalibrationMark) > calibrationDifference) {
 //            calibrationMark = (oldCalibrationMark + calibrationMark) / 2;
 //        }
-        Log.e(TAG, "New CalibrationMark: " + (int) calibrationMark);
+//        Log.e(TAG, "New CalibrationMark: " + (int) calibrationMark);
         thresholdPressure = calibrationMark;
         updateSharedPreference(); //also update the calibration value to the stored shared preferences
     }
@@ -789,7 +790,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
         }
     }
 
-    //SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_EEEE"); //e.g. 2013-10-14_Monday
+    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_EEEE"); //e.g. 2013-10-14_Monday
 
     private void saveTimeAndLocationToFile(long currentTimeInMillies, String data, String pressure, String threshold) {
 
@@ -803,8 +804,12 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
                 showAlertMessage("Error", "Unable to create " + folder.getAbsolutePath());
             }
         }
+        else {
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_EEEE"); //e.g. 2013-10-14_Monday
+            showAlertMessage("Success", "Folder exists");
+        }
+
+        //SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_EEEE"); //e.g. 2013-10-14_Monday
         
         String todayDateString = sdf.format(new Date());
         //create file if it does not exist
