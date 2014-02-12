@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/DBSBloboDiary/DBSBloboDiary.iml" filepath="$PROJECT_DIR$/DBSBloboDiary/DBSBloboDiary.iml" />
       <module fileurl="file://$PROJECT_DIR$/DBSBloboDiaryProject.iml" filepath="$PROJECT_DIR$/DBSBloboDiaryProject.iml" />
+      <module fileurl="file://$PROJECT_DIR$/DBS_Blobo2.iml" filepath="$PROJECT_DIR$/DBS_Blobo2.iml" />
     </modules>
   </component>
 </project>

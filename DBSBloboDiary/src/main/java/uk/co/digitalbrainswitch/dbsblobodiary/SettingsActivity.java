@@ -165,8 +165,8 @@ public class SettingsActivity extends Activity implements View.OnClickListener, 
 
                 try {
                     long_squeeze_duration_value = Integer.parseInt(etSettingsLongSqueezeDuration.getText().toString());
-                    if (long_squeeze_duration_value < 2) {
-                        showAlertMessage(getString(R.string.settings_error_title), "Long Squeeze Duration value must be larger than 1");
+                    if (long_squeeze_duration_value < 1) {
+                        showAlertMessage(getString(R.string.settings_error_title), "Long Squeeze Duration value must be larger than 0");
                         return;
                     }
                 } catch (NumberFormatException e) {

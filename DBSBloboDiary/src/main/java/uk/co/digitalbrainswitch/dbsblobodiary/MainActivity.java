@@ -789,7 +789,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
         }
     }
 
-    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_EEEE"); //e.g. 2013-10-14_Monday
+    //SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_EEEE"); //e.g. 2013-10-14_Monday
 
     private void saveTimeAndLocationToFile(long currentTimeInMillies, String data, String pressure, String threshold) {
 
@@ -804,6 +804,8 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
             }
         }
 
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_EEEE"); //e.g. 2013-10-14_Monday
+        
         String todayDateString = sdf.format(new Date());
         //create file if it does not exist
         File file = new File(folder, todayDateString + ".txt");

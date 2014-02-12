@@ -33,7 +33,7 @@
         android:theme="@style/AppTheme">
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
-            android:value="AIzaSyDZ3wx1TtrL1VhdeB5Mzmquj5vNu-eZCs8" />
+            android:value="AIzaSyCRxdKoTexVkQdkmzpu86WgVUD6FH5rlws" />
 
         <activity
             android:name="uk.co.digitalbrainswitch.dbsblobodiary.MainActivity"
