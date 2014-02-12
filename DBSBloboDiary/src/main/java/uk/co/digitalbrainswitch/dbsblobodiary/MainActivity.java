@@ -804,10 +804,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
                 showAlertMessage("Error", "Unable to create " + folder.getAbsolutePath());
             }
         }
-        else {
 
-            showAlertMessage("Success", "Folder exists");
-        }
 
         //SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_EEEE"); //e.g. 2013-10-14_Monday
         

@@ -44,6 +44,7 @@ public class DeviceListActivity extends Activity {
     private BluetoothAdapter mBtAdapter;
     //    private ArrayAdapter<String> mPairedDevicesArrayAdapter;
     private ArrayAdapter<String> mNewDevicesArrayAdapter;
+    private LinkedHashSet hashSet;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,6 +75,7 @@ public class DeviceListActivity extends Activity {
         // one for newly discovered devices
 //        mPairedDevicesArrayAdapter = new ArrayAdapter<String>(this, R.layout.device_name);
         mNewDevicesArrayAdapter = new ArrayAdapter<String>(this, R.layout.device_name);
+        hashSet = new LinkedHashSet();
 
         // Find and set up the ListView for paired devices
 //        ListView pairedListView = (ListView) findViewById(R.id.paired_devices);
@@ -193,7 +195,16 @@ public class DeviceListActivity extends Activity {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 // If it's already paired, skip it, because it's been listed already
                 if (device.getBondState() != BluetoothDevice.BOND_BONDED) {
-                    mNewDevicesArrayAdapter.add(device.getName() + "\n" + device.getAddress());
+
+                    int previousSize = hashSet.size();
+                    hashSet.add(device.getAddress());
+
+                    //To prevent duplicate entries in the ListView
+                    if(hashSet.size() > previousSize)
+                    {
+                        mNewDevicesArrayAdapter.add(device.getName() + "\n" + device.getAddress());
+                    }
+                    //mNewDevicesArrayAdapter.add(device.getName() + "\n" + device.getAddress());
                 }
                 // When discovery is finished, change the Activity title
             } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
