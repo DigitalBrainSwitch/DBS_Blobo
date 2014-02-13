@@ -106,7 +106,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
     public static boolean eventDetected = false;
 
     public static double calibrationMark = -1;
-    public static int calibrationDifference = 200; //default 200. update from sensitivity shared preference.
+    public static int calibrationDifference = 400; //default 400. update from sensitivity shared preference.
 
     public static Date previousDate;
 
@@ -157,10 +157,15 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
     private static final long TAP_MAX_DELAY = 400L; //max delay in ms
     private TapCounter tapCounter = new TapCounter(TAP_MAX_DELAY, TAP_MAX_DELAY);
 
+    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_EEEE"); //e.g. 2013-10-14_Monday
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        //To enforce the same format for filenames
+        sdf.setLenient(false);
 
         font = ((MyApplication) getApplication()).getCustomTypeface();
 
@@ -257,6 +262,8 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
         mLocationRequest.setFastestInterval(FAST_INTERVAL_CEILING_IN_MILLISECONDS);
         //Create a new location client
         mLocationClient = new LocationClient(this, this, this);
+
+
 
     }
 
@@ -560,6 +567,9 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
                             + " | (" + (int) calibrationMark + ":" + calibrationDifference + ")"
 //                                + "\t" + ((calibrationTest)?"Cal_test Mode":"")
                     );
+
+
+                    //if ((int) pressure - (int) calibrationMark > calibrationDifference
                     if (!calibrationTest && calibrationMark != -1) {
                         pressureLogValueCounter++;
                         if (pressureLogValueCounter == 5) { //log every 5th value (not enough space to log every pressure value)
@@ -790,7 +800,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
         }
     }
 
-    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_EEEE"); //e.g. 2013-10-14_Monday
+
 
     private void saveTimeAndLocationToFile(long currentTimeInMillies, String data, String pressure, String threshold) {
 
@@ -807,6 +817,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
 
 
         //SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_EEEE"); //e.g. 2013-10-14_Monday
+
         
         String todayDateString = sdf.format(new Date());
         //create file if it does not exist
@@ -833,7 +844,9 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
                     BufferedWriter out = new BufferedWriter(filewriter);
                     Date currentDateTime = new Date(currentTimeInMillies);
                     SimpleDateFormat sdfReadableDate = new SimpleDateFormat("yyyy/MM/dd");
+                    sdfReadableDate.setLenient(false);
                     SimpleDateFormat sdfReadableTime = new SimpleDateFormat("HH:mm:ss"); //e.g. 2013-10-14_Monday
+                    sdfReadableTime.setLenient(false);
                     String readableDate = sdfReadableDate.format(currentDateTime); //convert to millisec time to readable date format
                     String readableTime = sdfReadableTime.format(currentDateTime); //convert to millisec time to readable time format
                     //Structure: <Time In Millisec>;<Location Lat.>,<Location Long.>;<Blobo pressure>,<Threshold pressure>;<Date>;<Time>
@@ -903,6 +916,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
                     e.printStackTrace();
                 }
 
+                //if ((int) pressure - (int) calibrationMark > calibrationDifference
                 saveTimeAndLocationToFile(System.currentTimeMillis(), currentLocation.getLatitude() + "," + currentLocation.getLongitude(), ((int) pressure) + "", ((int) thresholdPressure) + "");
 
                 //stop update after a location is received
