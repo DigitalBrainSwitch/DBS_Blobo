@@ -106,7 +106,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
     public static boolean eventDetected = false;
 
     public static double calibrationMark = -1;
-    public static int calibrationDifference = 400; //default 400. update from sensitivity shared preference.
+    public static int calibrationDifference = 200; //default 200. update from sensitivity shared preference.
 
     public static Date previousDate;
 
@@ -800,7 +800,7 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
         }
     }
 
-
+    //SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_EEEE"); //e.g. 2013-10-14_Monday
 
     private void saveTimeAndLocationToFile(long currentTimeInMillies, String data, String pressure, String threshold) {
 
@@ -844,9 +844,9 @@ public class MainActivity extends Activity implements LocationListener, GooglePl
                     BufferedWriter out = new BufferedWriter(filewriter);
                     Date currentDateTime = new Date(currentTimeInMillies);
                     SimpleDateFormat sdfReadableDate = new SimpleDateFormat("yyyy/MM/dd");
-                    sdfReadableDate.setLenient(false);
+                    //sdfReadableDate.setLenient(false);
                     SimpleDateFormat sdfReadableTime = new SimpleDateFormat("HH:mm:ss"); //e.g. 2013-10-14_Monday
-                    sdfReadableTime.setLenient(false);
+                    //sdfReadableTime.setLenient(false);
                     String readableDate = sdfReadableDate.format(currentDateTime); //convert to millisec time to readable date format
                     String readableTime = sdfReadableTime.format(currentDateTime); //convert to millisec time to readable time format
                     //Structure: <Time In Millisec>;<Location Lat.>,<Location Long.>;<Blobo pressure>,<Threshold pressure>;<Date>;<Time>
